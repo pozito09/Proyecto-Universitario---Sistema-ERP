@@ -5,9 +5,9 @@ import java.awt.Color;
 public class Colores {
     public static final Color CAFE      = new Color(102, 51, 0);
     public static final Color DORADO    = new Color(200, 140, 40);
-    public static final Color DORADO_HOVER = new Color(220, 160, 55);
+    public static final Color DORADO_CLARO = new Color(220, 160, 55);
     public static final Color DORADO_BORDE = new Color(200, 160, 80);
-    public static final Color PRECIO    = new Color(140, 90, 20);
+    public static final Color CAFE_CLARO    = new Color(140, 90, 20);
     public static final Color TEXTO     = new Color(40, 25, 5);
     public static final Color FONDO     = new Color(245, 245, 220);
     public static final Color ROJO      = new Color(180, 50, 50);

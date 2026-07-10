@@ -3,16 +3,16 @@ package Administrativo;
 import static Clases.Colores.*;
 
 import Dashboard.GerencialV2;
-import Ventas.VentasVista;
-import Productos.ProductosVista;
-import Inventario.InventarioVista;
-import Compras.ComprasVista;
-import Caja.CajaVista;
-import Clientes.ClientesVista;
+import Ventas.Ventas;
+import Productos.GestionProductos;
+import Inventario.GestionInventario;
+import Compras.GestionCompras;
+import Caja.ControlCaja;
+import Clientes.GestionClientes;
 import Proveedores.GestionProveedores;
-import RRHH.RRHHVista;
-import Finanzas.FinanzasVista;
-import Reportes.ReportesVista;
+import RRHH.RRHH;
+import Finanzas.ModuloFinanciero;
+import Reportes.Reportes;
 import Acceso.Login;
 
 import java.awt.*;
@@ -25,13 +25,10 @@ public class PanelSelector extends JFrame {
     private static final Color CARD_BORDER = new Color(200, 140, 40);
 
     public PanelSelector() {
-        setTitle("CAFECOMETA ERP - SELECCIONAR ÁREA");
-        setSize(1100, 750);
-        javax.swing.SwingUtilities.invokeLater(() -> {
-            setExtendedState(JFrame.MAXIMIZED_BOTH);
-        });
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setTitle("CAFE COMETA - SELECCIONAR ÁREA");
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setMinimumSize(new Dimension(800, 550));
 
         JPanel main = new JPanel(new BorderLayout());
         main.setBackground(FONDO);
@@ -82,17 +79,17 @@ public class PanelSelector extends JFrame {
 
         AreaCard[] areas = {
             new AreaCard("Dashboard", "Indicadores generales", DORADO, GerencialV2::abrir),
-            new AreaCard("Ventas",      "Registro y consulta de ventas", DORADO_HOVER, VentasVista::abrir),
-            new AreaCard("Productos",   "Catálogo y precios", PRECIO, ProductosVista::abrir),
-            new AreaCard("Inventario",  "Stock y alertas", CAFE, InventarioVista::abrir),
-            new AreaCard("Compras",     "Órdenes a proveedores", CAFE, ComprasVista::abrir),
+            new AreaCard("Ventas",      "Registro y consulta de ventas", DORADO_CLARO, Ventas::abrir),
+            new AreaCard("Productos",   "Catálogo y precios", CAFE_CLARO, GestionProductos::abrir),
+            new AreaCard("Inventario",  "Stock y alertas", CAFE, GestionInventario::abrir),
+            new AreaCard("Compras",     "Órdenes a proveedores", CAFE, GestionCompras::abrir),
             new AreaCard("Proveedores", "Gestión de proveedores", DORADO, GestionProveedores::abrir),
-            new AreaCard("Clientes",    "Gestión de clientes", TEXTO_CLARO, ClientesVista::abrir),
-            new AreaCard("Caja",        "Control de caja diario", VERDE, CajaVista::abrir),
-            new AreaCard("Empresa",     "Datos del negocio", DORADO, EmpresaVista::abrir),
-            new AreaCard("RRHH", "Empleados y usuarios", DORADO_HOVER, RRHHVista::abrir),
-            new AreaCard("Finanzas",    "Ingresos y egresos", PRECIO, FinanzasVista::abrir),
-            new AreaCard("Reportes",    "Estadísticas y gráficos", CAFE, ReportesVista::abrir),
+            new AreaCard("Clientes",    "Gestión de clientes", TEXTO_CLARO, GestionClientes::abrir),
+            new AreaCard("Caja",        "Control de caja diario", VERDE, ControlCaja::abrir),
+            new AreaCard("Empresa",     "Datos del negocio", DORADO, DatosEmpresa::abrir),
+            new AreaCard("RRHH", "Empleados y usuarios", DORADO_CLARO, RRHH::abrir),
+            new AreaCard("Finanzas",    "Ingresos y egresos", CAFE_CLARO, ModuloFinanciero::abrir),
+            new AreaCard("Reportes",    "Estadísticas y gráficos", CAFE, Reportes::abrir),
         };
 
         for (AreaCard c : areas) {

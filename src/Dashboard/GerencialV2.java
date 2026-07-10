@@ -47,6 +47,11 @@ public class GerencialV2 extends JFrame {
     private JPanel panelGraficoCircular;
 
     // ==========================
+    // TIMER
+    // ==========================
+    private Timer timerAutoRefresh;
+
+    // ==========================
     // FECHA
     // ==========================
     private JLabel lblFechaActualizacion;
@@ -61,7 +66,7 @@ public class GerencialV2 extends JFrame {
     // ==========================
     public GerencialV2() {
 
-        setTitle("CAFECOMETA ERP - DASHBOARD GERENCIAL");
+        setTitle("CAFÉ COMETA- DASHBOARD GERENCIAL");
 
         setSize(1500, 850);
 
@@ -84,6 +89,15 @@ public class GerencialV2 extends JFrame {
         cargarGraficoCircular();
 
         iniciarActualizacionAutomatica();
+
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                if (timerAutoRefresh != null && timerAutoRefresh.isRunning()) {
+                    timerAutoRefresh.stop();
+                }
+            }
+        });
 
     }
 
@@ -200,13 +214,13 @@ public class GerencialV2 extends JFrame {
                 = crearTarjeta(
                         panelKPIs,
                         "INGRESOS",
-                        DORADO_HOVER);
+                        DORADO_CLARO);
 
         lblProductos
                 = crearTarjeta(
                         panelKPIs,
                         "PRODUCTOS",
-                        PRECIO);
+                        CAFE_CLARO);
 
         lblProveedores
                 = crearTarjeta(
@@ -460,65 +474,40 @@ public class GerencialV2 extends JFrame {
         try (Connection con = ConexionBD.conectar()) {
 
             // TOTAL VENTAS
-            Statement stVentas
-                    = con.createStatement();
-
-            ResultSet rsVentas
-                    = stVentas.executeQuery(
-                            "SELECT COUNT(*) total FROM pedidos");
-
-            if (rsVentas.next()) {
-
-                lblVentas.setText(
-                        rsVentas.getString("total"));
+            try (Statement stVentas = con.createStatement();
+                 ResultSet rsVentas = stVentas.executeQuery(
+                        "SELECT COUNT(*) total FROM pedidos WHERE pagado = TRUE")) {
+                if (rsVentas.next()) {
+                    lblVentas.setText(rsVentas.getString("total"));
+                }
             }
 
             // TOTAL INGRESOS
-            Statement stIngresos
-                    = con.createStatement();
-
-            ResultSet rsIngresos
-                    = stIngresos.executeQuery(
-                            "SELECT SUM(total) total FROM pedidos");
-
-            if (rsIngresos.next()) {
-
-                double total
-                        = rsIngresos.getDouble("total");
-
-                lblIngresos.setText(
-                        "S/ "
-                        + String.format(
-                                "%,.2f",
-                                total));
+            try (Statement stIngresos = con.createStatement();
+                 ResultSet rsIngresos = stIngresos.executeQuery(
+                        "SELECT SUM(total) total FROM pedidos WHERE pagado = TRUE")) {
+                if (rsIngresos.next()) {
+                    double total = rsIngresos.getDouble("total");
+                    lblIngresos.setText("S/ " + String.format("%,.2f", total));
+                }
             }
 
             // PRODUCTOS
-            Statement stProductos
-                    = con.createStatement();
-
-            ResultSet rsProductos
-                    = stProductos.executeQuery(
-                            "SELECT COUNT(*) total FROM productos");
-
-            if (rsProductos.next()) {
-
-                lblProductos.setText(
-                        rsProductos.getString("total"));
+            try (Statement stProductos = con.createStatement();
+                 ResultSet rsProductos = stProductos.executeQuery(
+                        "SELECT COUNT(*) total FROM productos")) {
+                if (rsProductos.next()) {
+                    lblProductos.setText(rsProductos.getString("total"));
+                }
             }
 
             // PROVEEDORES
-            Statement stProveedores
-                    = con.createStatement();
-
-            ResultSet rsProveedores
-                    = stProveedores.executeQuery(
-                            "SELECT COUNT(*) total FROM proveedores");
-
-            if (rsProveedores.next()) {
-
-                lblProveedores.setText(
-                        rsProveedores.getString("total"));
+            try (Statement stProveedores = con.createStatement();
+                 ResultSet rsProveedores = stProveedores.executeQuery(
+                        "SELECT COUNT(*) total FROM proveedores")) {
+                if (rsProveedores.next()) {
+                    lblProveedores.setText(rsProveedores.getString("total"));
+                }
             }
 
             lblFechaActualizacion.setText(
@@ -545,6 +534,7 @@ public class GerencialV2 extends JFrame {
             String sql
                     = "SELECT id, nombre_cliente, fecha, total "
                     + "FROM pedidos "
+                    + "WHERE estado != 'Anulado' "
                     + "ORDER BY id DESC "
                     + "LIMIT 10";
 
@@ -686,12 +676,14 @@ public class GerencialV2 extends JFrame {
                     = new DefaultPieDataset();
 
             String sql
-                    = "SELECT nombre_producto, "
-                    + "SUM(cantidad) total "
-                    + "FROM detalle_pedido "
-                    + "GROUP BY nombre_producto "
+                    = "SELECT dp.nombre_producto, "
+                    + "SUM(dp.cantidad) total "
+                    + "FROM detalle_pedido dp "
+                    + "INNER JOIN pedidos p ON dp.id_pedido = p.id "
+                    + "WHERE p.pagado = TRUE "
+                    + "GROUP BY dp.nombre_producto "
                     + "ORDER BY total DESC "
-                    + "LIMIT 8";
+                    + "LIMIT 10";
 
             PreparedStatement ps
                     = con.prepareStatement(sql);
@@ -737,7 +729,7 @@ public class GerencialV2 extends JFrame {
     // ==========================
     private void iniciarActualizacionAutomatica() {
 
-        Timer timer
+        timerAutoRefresh
                 = new Timer(
                         30000,
                         e -> {
@@ -754,7 +746,7 @@ public class GerencialV2 extends JFrame {
 
                         });
 
-        timer.start();
+        timerAutoRefresh.start();
     }
 
     // ==========================

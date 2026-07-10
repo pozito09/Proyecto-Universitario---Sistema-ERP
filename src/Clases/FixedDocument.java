@@ -7,16 +7,16 @@ import javax.swing.text.PlainDocument;
 public class FixedDocument extends PlainDocument {
     private final int maxLength;
     private final boolean onlyDigits;
-    private final boolean startWith;
+    private final boolean mustStartWith9;
 
     public FixedDocument(int maxLength, boolean onlyDigits) {
         this(maxLength, onlyDigits, false);
     }
 
-    public FixedDocument(int maxLength, boolean onlyDigits, boolean startWith) {
+    public FixedDocument(int maxLength, boolean onlyDigits, boolean mustStartWith9) {
         this.maxLength = maxLength;
         this.onlyDigits = onlyDigits;
-        this.startWith = startWith;
+        this.mustStartWith9 = mustStartWith9;
     }
 
     @Override
@@ -27,8 +27,7 @@ public class FixedDocument extends PlainDocument {
         String current = getText(0, getLength());
         String nuevo = current.substring(0, offset) + str + current.substring(offset);
 
-        // Validar que empiece con 9
-        if (startWith && nuevo.length() > 0 && nuevo.charAt(0) != '9') return;
+        if (mustStartWith9 && nuevo.length() > 0 && nuevo.charAt(0) != '9') return;
 
         if (nuevo.length() > maxLength) return;
 

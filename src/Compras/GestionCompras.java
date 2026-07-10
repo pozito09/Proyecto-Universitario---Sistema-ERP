@@ -2,6 +2,7 @@ package Compras;
 
 import static Clases.Colores.*;
 import Clases.Botones;
+import Compras.OpcionesCompra;
 import Clases.ConexionBD;
 import java.awt.*;
 import java.sql.Connection;
@@ -13,27 +14,18 @@ import javax.swing.table.DefaultTableModel;
 
 public class GestionCompras extends JFrame {
 
-    private JComboBox<String> cmbProveedor;
-    private JComboBox<String> cmbInsumo;
-    private JTextField txtCantidad, txtPrecio;
     private JTable tabla;
-    private JButton btnGuardar, btnLimpiar;
     private DefaultTableModel modelo;
 
     public GestionCompras() {
-        setTitle("Gestión de Compras - CafeCometa");
-        setSize(900, 600);
+
+        setTitle("CAFÉ COMETA - COMPRAS");
+        setSize(1000, 600);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        iniciarComponentes();
-        cargarProveedores();
-        cargarInsumos();
-    }
-
-    private void iniciarComponentes() {
-        JPanel content = new JPanel(new BorderLayout());
-        content.setBackground(FONDO);
+        setLayout(new BorderLayout());
 
         // HEADER
         JPanel header = new JPanel(new BorderLayout());
@@ -44,218 +36,172 @@ public class GestionCompras extends JFrame {
         JLabel titulo = new JLabel("GESTIÓN DE COMPRAS");
         titulo.setForeground(Color.WHITE);
         titulo.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        header.add(titulo, BorderLayout.WEST);
+        titulo.setHorizontalAlignment(SwingConstants.CENTER);
 
-        content.add(header, BorderLayout.NORTH);
+        header.add(titulo, BorderLayout.CENTER);
+        add(header, BorderLayout.NORTH);
 
-        // CENTRO
-        JPanel centro = new JPanel(null);
-        centro.setBackground(FONDO);
+        String columnas[] = {
+            "ID",
+            "Proveedor",
+            "Fecha",
+            "Monto",
+            "Estado"
+        };
 
-        JLabel lblProveedor = new JLabel("Proveedor:");
-        lblProveedor.setBounds(50, 30, 100, 25);
-        centro.add(lblProveedor);
-
-        cmbProveedor = new JComboBox<>();
-        cmbProveedor.setBounds(160, 30, 220, 25);
-        centro.add(cmbProveedor);
-
-        JLabel lblInsumo = new JLabel("Insumo:");
-        lblInsumo.setBounds(450, 30, 100, 25);
-        centro.add(lblInsumo);
-
-        cmbInsumo = new JComboBox<>();
-        cmbInsumo.setBounds(550, 30, 220, 25);
-        centro.add(cmbInsumo);
-
-        JLabel lblCantidad = new JLabel("Cantidad:");
-        lblCantidad.setBounds(50, 80, 100, 25);
-        centro.add(lblCantidad);
-
-        txtCantidad = new JTextField();
-        txtCantidad.setBounds(160, 80, 220, 25);
-        centro.add(txtCantidad);
-
-        JLabel lblPrecio = new JLabel("Precio Unitario:");
-        lblPrecio.setBounds(450, 80, 100, 25);
-        centro.add(lblPrecio);
-
-        txtPrecio = new JTextField();
-        txtPrecio.setBounds(550, 80, 220, 25);
-        centro.add(txtPrecio);
-
-        btnGuardar = Botones.crear("Guardar Compra", DORADO, DORADO_HOVER);
-        btnGuardar.setBounds(250, 150, 180, 35);
-        centro.add(btnGuardar);
-
-        btnLimpiar = Botones.crear("Limpiar", CAFE);
-        btnLimpiar.setBounds(470, 150, 180, 35);
-        centro.add(btnLimpiar);
-
-        modelo = new DefaultTableModel() {
+        modelo = new DefaultTableModel(columnas, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
-        modelo.setColumnIdentifiers(new Object[]{
-            "Proveedor", "Insumo", "Cantidad", "Precio Unitario", "Subtotal"
-        });
 
         tabla = new JTable(modelo);
-        JScrollPane scroll = new JScrollPane(tabla);
-        scroll.setBounds(50, 230, 780, 250);
-        centro.add(scroll);
+        tabla.setRowHeight(28);
+        tabla.getTableHeader().setBackground(CABECERA_TABLA);
+        tabla.getTableHeader().setForeground(Color.WHITE);
+        tabla.setSelectionBackground(SELECCION_TABLA);
+        tabla.setGridColor(GRILLA_TABLA);
 
-        btnGuardar.addActionListener(e -> agregarCompraATabla());
-        btnLimpiar.addActionListener(e -> limpiarCampos());
+        add(new JScrollPane(tabla), BorderLayout.CENTER);
 
-        content.add(centro, BorderLayout.CENTER);
-        add(content);
+        JPanel botones = new JPanel();
+
+        JButton btnNueva = Botones.crear("Nueva Compra", VERDE);
+        JButton btnEditar = Botones.crear("Editar", DORADO, DORADO_CLARO);
+        JButton btnEliminar = Botones.crear("Eliminar", ROJO, ROJO_HOVER);
+        JButton btnActualizar = Botones.crear("Actualizar", DORADO, DORADO_CLARO);
+
+        botones.add(btnNueva);
+        botones.add(btnEditar);
+        botones.add(btnEliminar);
+        botones.add(btnActualizar);
+
+        add(botones, BorderLayout.SOUTH);
+
+        btnNueva.addActionListener(e -> OpcionesCompra.abrir());
+        btnEditar.addActionListener(e -> editarCompra());
+        btnEliminar.addActionListener(e -> eliminarCompra());
+        btnActualizar.addActionListener(e -> cargarCompras());
+
+        cargarCompras();
     }
 
+    private void cargarCompras() {
 
-
-    private void cargarProveedores() {
-        String sql = "SELECT nombre FROM proveedores";
-
-        try (Connection con = ConexionBD.conectar();
-             PreparedStatement ps = con.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            cmbProveedor.removeAllItems();
-
-            while (rs.next()) {
-                cmbProveedor.addItem(rs.getString("nombre"));
-            }
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error al cargar proveedores: " + e.getMessage());
-        }
-    }
-
-    private void cargarInsumos() {
-        String sql = "SELECT nombre FROM insumos";
-
-        try (Connection con = ConexionBD.conectar();
-             PreparedStatement ps = con.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            cmbInsumo.removeAllItems();
-
-            while (rs.next()) {
-                cmbInsumo.addItem(rs.getString("nombre"));
-            }
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error al cargar insumos: " + e.getMessage());
-        }
-    }
-
-    private void agregarCompraATabla() {
-
-    try {
-
-        String proveedor = cmbProveedor.getSelectedItem().toString();
-        String insumo = cmbInsumo.getSelectedItem().toString();
-
-        double cantidad = Double.parseDouble(txtCantidad.getText());
-        double precio = Double.parseDouble(txtPrecio.getText());
-
-        double subtotal = cantidad * precio;
-
-        Connection con = ConexionBD.conectar();
-
-        // Obtener ID proveedor
-        int idProveedor = 0;
-
-        PreparedStatement psProveedor = con.prepareStatement(
-                "SELECT id FROM proveedores WHERE nombre=?");
-
-        psProveedor.setString(1, proveedor);
-
-        ResultSet rsProveedor = psProveedor.executeQuery();
-
-        if (rsProveedor.next()) {
-            idProveedor = rsProveedor.getInt("id");
-        }
-
-        // Registrar compra
-        PreparedStatement psCompra = con.prepareStatement(
-                "INSERT INTO compras(id_proveedor,total,estado) VALUES(?,?,'Pendiente')",
-                PreparedStatement.RETURN_GENERATED_KEYS);
-
-        psCompra.setInt(1, idProveedor);
-        psCompra.setDouble(2, subtotal);
-
-        psCompra.executeUpdate();
-
-        ResultSet rsCompra = psCompra.getGeneratedKeys();
-
-        int idCompra = 0;
-
-        if (rsCompra.next()) {
-            idCompra = rsCompra.getInt(1);
-        }
-
-        // Obtener ID insumo
-        int idInsumo = 0;
-
-        PreparedStatement psInsumo = con.prepareStatement(
-                "SELECT id FROM insumos WHERE nombre=?");
-
-        psInsumo.setString(1, insumo);
-
-        ResultSet rsInsumo = psInsumo.executeQuery();
-
-        if (rsInsumo.next()) {
-            idInsumo = rsInsumo.getInt("id");
-        }
-
-        // Registrar detalle compra
-        PreparedStatement psDetalle = con.prepareStatement(
-                "INSERT INTO detalle_compras(id_compra,id_insumo,cantidad,precio_unitario,subtotal) VALUES(?,?,?,?,?)");
-
-        psDetalle.setInt(1, idCompra);
-        psDetalle.setInt(2, idInsumo);
-        psDetalle.setDouble(3, cantidad);
-        psDetalle.setDouble(4, precio);
-        psDetalle.setDouble(5, subtotal);
-
-        psDetalle.executeUpdate();
-
-        // Actualizar stock
-        PreparedStatement psStock = con.prepareStatement(
-                "UPDATE insumos SET stock = stock + ? WHERE id=?");
-
-        psStock.setDouble(1, cantidad);
-        psStock.setInt(2, idInsumo);
-
-        psStock.executeUpdate();
-
-        // Mostrar en tabla
-        modelo.addRow(new Object[]{
-            proveedor,
-            insumo,
-            cantidad,
-            precio,
-            subtotal
-        });
-
-        JOptionPane.showMessageDialog(this,
-                "Compra registrada correctamente");
-
-        txtCantidad.setText("");
-        txtPrecio.setText("");
-
-    } catch (Exception e) {
-
-        JOptionPane.showMessageDialog(this,
-                "Error: " + e.getMessage());
-    }
-}
-
-    private void limpiarCampos() {
-        txtCantidad.setText("");
-        txtPrecio.setText("");
         modelo.setRowCount(0);
+
+        try (Connection con = ConexionBD.conectar()) {
+
+            String sql = """
+                SELECT
+                    c.id,
+                    p.nombre,
+                    c.fecha,
+                    c.total,
+                    COALESCE(c.estado, 'Pendiente') AS estado
+                FROM compras c
+                LEFT JOIN proveedores p
+                    ON c.id_proveedor = p.id
+                ORDER BY c.id DESC
+                """;
+
+            try (PreparedStatement ps = con.prepareStatement(sql);
+                 ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    modelo.addRow(new Object[]{
+                        rs.getInt("id"),
+                        rs.getString("nombre"),
+                        rs.getTimestamp("fecha"),
+                        rs.getDouble("total"),
+                        rs.getString("estado")
+                    });
+                }
+            }
+
+        } catch (Exception e) {
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Error al cargar compras:\n" + e.getMessage()
+            );
+        }
+    }
+
+    private void editarCompra() {
+        int fila = tabla.getSelectedRow();
+        if (fila < 0) {
+            JOptionPane.showMessageDialog(this, "Seleccione una compra de la tabla");
+            return;
+        }
+        int id = (int) modelo.getValueAt(fila, 0);
+        String estadoActual = modelo.getValueAt(fila, 4).toString();
+
+        String[] opciones = {"Pendiente", "Completado", "Anulado"};
+        String nuevoEstado = (String) JOptionPane.showInputDialog(this,
+                "Cambiar estado de la compra:", "Editar Estado",
+                JOptionPane.QUESTION_MESSAGE, null, opciones, estadoActual);
+
+        if (nuevoEstado != null && !nuevoEstado.equals(estadoActual)) {
+            try (Connection con = ConexionBD.conectar();
+                 PreparedStatement ps = con.prepareStatement(
+                         "UPDATE compras SET estado=? WHERE id=?")) {
+                ps.setString(1, nuevoEstado);
+                ps.setInt(2, id);
+                ps.executeUpdate();
+                cargarCompras();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+            }
+        }
+    }
+
+    private void eliminarCompra() {
+        int fila = tabla.getSelectedRow();
+        if (fila < 0) {
+            JOptionPane.showMessageDialog(this, "Seleccione una compra de la tabla");
+            return;
+        }
+        int id = (int) modelo.getValueAt(fila, 0);
+        int conf = JOptionPane.showConfirmDialog(this,
+                "¿Eliminar compra ID " + id + "?\nSe reversará el stock de los insumos asociados.",
+                "Confirmar", JOptionPane.YES_NO_OPTION);
+        if (conf == JOptionPane.YES_OPTION) {
+            try (Connection con = ConexionBD.conectar()) {
+                con.setAutoCommit(false);
+
+                try (PreparedStatement psRevertir = con.prepareStatement(
+                        "UPDATE insumos SET stock = stock - ? WHERE id = ? AND stock >= ?")) {
+                    try (PreparedStatement psDetalle = con.prepareStatement(
+                            "SELECT id_insumo, cantidad FROM detalle_compras WHERE id_compra = ?")) {
+                        psDetalle.setInt(1, id);
+                        try (ResultSet rs = psDetalle.executeQuery()) {
+                            while (rs.next()) {
+                                psRevertir.setDouble(1, rs.getDouble("cantidad"));
+                                psRevertir.setInt(2, rs.getInt("id_insumo"));
+                                psRevertir.setDouble(3, rs.getDouble("cantidad"));
+                                psRevertir.addBatch();
+                            }
+                        }
+                    }
+                    psRevertir.executeBatch();
+                }
+
+                try (PreparedStatement psDelDetalle = con.prepareStatement(
+                        "DELETE FROM detalle_compras WHERE id_compra = ?")) {
+                    psDelDetalle.setInt(1, id);
+                    psDelDetalle.executeUpdate();
+                }
+
+                try (PreparedStatement psDelCompra = con.prepareStatement(
+                        "DELETE FROM compras WHERE id = ?")) {
+                    psDelCompra.setInt(1, id);
+                    psDelCompra.executeUpdate();
+                }
+
+                con.commit();
+                cargarCompras();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+            }
+        }
     }
 
     private static GestionCompras instancia;

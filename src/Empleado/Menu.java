@@ -11,7 +11,7 @@ import java.util.*;
 public class Menu extends javax.swing.JFrame {
 
     private ArrayList<Producto> productos = new ArrayList<>();
-    private Pago ventanaPago = null;
+    private listaMenu ventanaPago = null;
     private javax.swing.JDialog ventanaBusqueda = null;
     // contador del carrito
     private int totalCarrito = 0;
@@ -19,7 +19,8 @@ public class Menu extends javax.swing.JFrame {
 
     public Menu() {
         initComponents();
-        javax.swing.JLabel lblUsuario = new javax.swing.JLabel("  Mozo: " + Clases.Sesion.nombre);
+        setTitle("CAFÉ COMETA - PANEL DE MOZO");
+        javax.swing.JLabel lblUsuario = new javax.swing.JLabel("  Mozo: " + Clases.GuardarSesion.nombreCompleto());
         lblUsuario.setFont(new java.awt.Font("Segoe UI", java.awt.Font.ITALIC, 14));
         getContentPane().add(lblUsuario, java.awt.BorderLayout.SOUTH);
         inicializarProductos();
@@ -109,7 +110,7 @@ public class Menu extends javax.swing.JFrame {
         CerrarSesion = new javax.swing.JButton();
         Compra = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
         jPanel1.setBackground(new java.awt.Color(102, 51, 0));
 
@@ -342,10 +343,15 @@ public class Menu extends javax.swing.JFrame {
                         javax.swing.JLabel lblPrecio = new javax.swing.JLabel(" S/ " + p.getPrecio() + "  ");
                         lblPrecio.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14));
                         lblPrecio.setForeground(new java.awt.Color(140, 90, 20));
-                        javax.swing.JButton btnAgregar = Botones.crear("+ Agregar", DORADO, DORADO_HOVER);
+                        javax.swing.JButton btnAgregar = Botones.crear("+ Agregar", DORADO, DORADO_CLARO);
                         btnAgregar.addActionListener(ev -> {
+                            if (p.getStock() <= 0) {
+                                javax.swing.JOptionPane.showMessageDialog(
+                                        dialogo, "Sin stock disponible", "Café Cometa", javax.swing.JOptionPane.WARNING_MESSAGE);
+                                return;
+                            }
                             if (ventanaPago == null) {
-                                ventanaPago = new Pago(Menu.this);
+                                ventanaPago = new listaMenu(Menu.this);
                             }
                             ventanaPago.agregarProducto(p);
                             javax.swing.JOptionPane.showMessageDialog(
@@ -377,6 +383,7 @@ public class Menu extends javax.swing.JFrame {
 
     public void actualizarBadgeCarrito(int cantidad) {
         totalCarrito += cantidad;
+        if (totalCarrito < 0) totalCarrito = 0;
         badgeCarrito.setText(String.valueOf(totalCarrito));
         reponerBadge();
     }
@@ -402,7 +409,7 @@ public class Menu extends javax.swing.JFrame {
 
     private void CompraActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CompraActionPerformed
         if (ventanaPago == null) {
-            ventanaPago = new Pago(this);
+            ventanaPago = new listaMenu(this);
         }
         ventanaPago.setVisible(true);
         ventanaPago.setLocationRelativeTo(null);
@@ -410,6 +417,14 @@ public class Menu extends javax.swing.JFrame {
     }//GEN-LAST:event_CompraActionPerformed
     private void inicializarProductos() {
         productos = CatalogoProductos.obtenerProductos();
+    }
+
+    public void refrescarCatalogo() {
+        inicializarProductos();
+        Café.removeAll();
+        Emparedados.removeAll();
+        Postres.removeAll();
+        cargarCatalogo();
     }
 
     // ── Cargar productos en los paneles del Designer ──────────────────
@@ -520,7 +535,7 @@ public class Menu extends javax.swing.JFrame {
 
         javax.swing.JLabel lblPrecio = new javax.swing.JLabel(String.format("S/ %.2f", p.getPrecio()));
         lblPrecio.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 15));
-        lblPrecio.setForeground(PRECIO);
+        lblPrecio.setForeground(CAFE_CLARO);
         lblPrecio.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
 
         // ── CONTADOR: [−] [campo] [+] ─────────────────────────────────
@@ -540,7 +555,7 @@ public class Menu extends javax.swing.JFrame {
                 super.paintComponent(g);
                 java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
                 g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getModel().isPressed() ? new java.awt.Color(140, 95, 15) : getModel().isRollover() ? DORADO_HOVER : DORADO);
+                g2.setColor(getModel().isPressed() ? new java.awt.Color(140, 95, 15) : getModel().isRollover() ? DORADO_CLARO : DORADO);
                 g2.fillOval(0, 0, getWidth(), getHeight());
                 // Dibujar el texto encima
                 g2.setColor(java.awt.Color.WHITE);
@@ -588,7 +603,7 @@ public class Menu extends javax.swing.JFrame {
                 super.paintComponent(g);
                 java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
                 g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getModel().isPressed() ? new java.awt.Color(140, 95, 15) : getModel().isRollover() ? DORADO_HOVER : DORADO);
+                g2.setColor(getModel().isPressed() ? new java.awt.Color(140, 95, 15) : getModel().isRollover() ? DORADO_CLARO : DORADO);
                 g2.fillOval(0, 0, getWidth(), getHeight());
                 // Dibujar el texto encima
                 g2.setColor(java.awt.Color.WHITE);
@@ -640,7 +655,7 @@ public class Menu extends javax.swing.JFrame {
         contador.add(mas);
 
         // ── BOTÓN AGREGAR ─────────────────────────────────────────────
-        javax.swing.JButton btnAgregar = Botones.crear("+ Agregar", DORADO, DORADO_HOVER);
+        javax.swing.JButton btnAgregar = Botones.crear("+ Agregar", DORADO, DORADO_CLARO);
         btnAgregar.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
         btnAgregar.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 32));
         if (!disponible) {
@@ -672,7 +687,7 @@ public class Menu extends javax.swing.JFrame {
             }
 
             if (ventanaPago == null) {
-                ventanaPago = new Pago(this);
+                ventanaPago = new listaMenu(this);
             }
 
             int cantidad;
@@ -688,6 +703,14 @@ public class Menu extends javax.swing.JFrame {
 
             } catch (NumberFormatException ex) {
                 cantidad = 1;
+            }
+
+            if (cantidad > p.getStock()) {
+                javax.swing.JOptionPane.showMessageDialog(
+                        null,
+                        "Stock insuficiente. Solo hay " + p.getStock() + " unidades disponibles.",
+                        "Stock agotado", javax.swing.JOptionPane.WARNING_MESSAGE);
+                return;
             }
 
             for (int i = 0; i < cantidad; i++) {

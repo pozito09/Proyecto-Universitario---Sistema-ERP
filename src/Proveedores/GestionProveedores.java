@@ -23,7 +23,7 @@ public class GestionProveedores extends javax.swing.JFrame {
     }
 
     private void initComponents() {
-        setTitle("Gestión de Proveedores - CafeCometa");
+        setTitle("CAFÉ COMETA - GESTIÓN DE PROVEEDORES");
         setSize(1100, 750);
         javax.swing.SwingUtilities.invokeLater(() -> setExtendedState(JFrame.MAXIMIZED_BOTH));
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -122,8 +122,8 @@ public class GestionProveedores extends javax.swing.JFrame {
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 6));
         actionPanel.setBackground(FONDO);
 
-        btnGuardar = Botones.crear("Guardar", DORADO, DORADO_HOVER);
-        btnActualizar = Botones.crear("Actualizar", DORADO, DORADO_HOVER);
+        btnGuardar = Botones.crear("Guardar", DORADO, DORADO_CLARO);
+        btnActualizar = Botones.crear("Actualizar", DORADO, DORADO_CLARO);
         btnEliminar = Botones.crear("Eliminar", ROJO, ROJO_HOVER);
         btnLimpiar = Botones.crear("Limpiar", CAFE);
 
@@ -139,7 +139,7 @@ public class GestionProveedores extends javax.swing.JFrame {
         txtBuscar = new JTextField(15);
         txtBuscar.setFont(fontCampo);
         busquedaPanel.add(txtBuscar);
-        btnBuscar = Botones.crear("Buscar", DORADO, DORADO_HOVER);
+        btnBuscar = Botones.crear("Buscar", DORADO, DORADO_CLARO);
         busquedaPanel.add(btnBuscar);
 
         // ── TABLA ──
@@ -250,8 +250,8 @@ public class GestionProveedores extends javax.swing.JFrame {
             return false;
         }
 
-        if (!correo.toLowerCase().contains("@gmail.com")) {
-            JOptionPane.showMessageDialog(this, "El correo debe ser de Gmail (@gmail.com).");
+        if (!correo.contains("@") || !correo.contains(".")) {
+            JOptionPane.showMessageDialog(this, "Ingrese un correo válido (ej: usuario@dominio.com).");
             txtCorreo.requestFocus();
             return false;
         }
@@ -325,18 +325,23 @@ public class GestionProveedores extends javax.swing.JFrame {
         int confirmacion = JOptionPane.showConfirmDialog(this, "¿Deseas eliminar este proveedor?", "Confirmar", JOptionPane.YES_NO_OPTION);
 
         if (confirmacion == JOptionPane.YES_OPTION) {
-            String sql = "DELETE FROM proveedores WHERE id=?";
-
-            try (Connection con = ConexionBD.conectar();
-                 PreparedStatement ps = con.prepareStatement(sql)) {
-
-                ps.setInt(1, id);
-                ps.executeUpdate();
-
+            try (Connection con = ConexionBD.conectar()) {
+                try (PreparedStatement psCheck = con.prepareStatement(
+                        "SELECT COUNT(*) FROM compras WHERE id_proveedor = ?")) {
+                    psCheck.setInt(1, id);
+                    ResultSet rsCheck = psCheck.executeQuery();
+                    if (rsCheck.next() && rsCheck.getInt(1) > 0) {
+                        JOptionPane.showMessageDialog(this, "No se puede eliminar: el proveedor tiene compras asociadas.");
+                        return;
+                    }
+                }
+                try (PreparedStatement ps = con.prepareStatement("DELETE FROM proveedores WHERE id=?")) {
+                    ps.setInt(1, id);
+                    ps.executeUpdate();
+                }
                 JOptionPane.showMessageDialog(this, "Proveedor eliminado correctamente.");
                 limpiarCampos();
                 cargarTabla("");
-
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Error al eliminar proveedor: " + e.getMessage());
             }

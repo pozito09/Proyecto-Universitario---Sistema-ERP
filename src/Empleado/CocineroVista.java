@@ -21,19 +21,31 @@ public class CocineroVista extends JFrame {
     private JButton btnCerrarSesion;
     private JLabel lblTitulo;
 
+    private Timer timer;
+
     public CocineroVista() {
         initComponents();
         cargarPedidos();
 
-        Timer timer = new Timer(5000, e -> cargarPedidos());
+        timer = new Timer(5000, e -> cargarPedidos());
         timer.start();
+
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                if (timer != null && timer.isRunning()) {
+                    timer.stop();
+                }
+            }
+        });
     }
 
     private void initComponents() {
 
-        setTitle("CAFECOMETA - PANEL DE COCINA");
+        setTitle("CAFÉ COMETA - PANEL DE COCINERO");
+        setSize(1000, 700);
+        setMinimumSize(new java.awt.Dimension(800, 600));
         setExtendedState(JFrame.MAXIMIZED_BOTH);
-        setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         JPanel principal = new JPanel(new BorderLayout());
@@ -41,11 +53,11 @@ public class CocineroVista extends JFrame {
 
         lblTitulo = new JLabel("PEDIDOS DE COCINA", SwingConstants.CENTER);
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 28));
-        lblTitulo.setBorder(BorderFactory.createEmptyBorder(15,10,15,10));
+        lblTitulo.setBorder(BorderFactory.createEmptyBorder(15, 10, 15, 10));
 
-        JLabel lblUsuario = new JLabel("Cocinero: " + Clases.Sesion.nombre, SwingConstants.RIGHT);
+        JLabel lblUsuario = new JLabel("Cocinero: " + Clases.GuardarSesion.nombreCompleto(), SwingConstants.RIGHT);
         lblUsuario.setFont(new Font("Segoe UI", Font.ITALIC, 14));
-        lblUsuario.setBorder(BorderFactory.createEmptyBorder(15,10,5,10));
+        lblUsuario.setBorder(BorderFactory.createEmptyBorder(15, 10, 5, 10));
 
         JPanel panelNorte = new JPanel(new BorderLayout());
         panelNorte.setBackground(FONDO);
@@ -61,7 +73,7 @@ public class CocineroVista extends JFrame {
                     "Fecha",
                     "Estado",
                     "Creado por"
-                },0
+                }, 0
         ) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -80,7 +92,7 @@ public class CocineroVista extends JFrame {
                     "Cantidad",
                     "Precio",
                     "Subtotal"
-                },0
+                }, 0
         ) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -105,15 +117,32 @@ public class CocineroVista extends JFrame {
 
         JPanel panelBotones = new JPanel(new BorderLayout());
         panelBotones.setBackground(FONDO);
+        panelBotones.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JPanel panelIzquierdo = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 5));
+        JPanel panelIzquierdo = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         panelIzquierdo.setBackground(FONDO);
         btnPreparando = new JButton("PREPARANDO");
+        btnPreparando.setBackground(DORADO);
+        btnPreparando.setForeground(Color.WHITE);
+        btnPreparando.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnPreparando.setFocusPainted(false);
+        btnPreparando.setBorderPainted(false);
+        btnPreparando.setContentAreaFilled(false);
+        btnPreparando.setOpaque(true);
+        btnPreparando.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnListo = new JButton("LISTO");
+        btnListo.setBackground(VERDE);
+        btnListo.setForeground(Color.WHITE);
+        btnListo.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnListo.setFocusPainted(false);
+        btnListo.setBorderPainted(false);
+        btnListo.setContentAreaFilled(false);
+        btnListo.setOpaque(true);
+        btnListo.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         panelIzquierdo.add(btnPreparando);
         panelIzquierdo.add(btnListo);
 
-        JPanel panelDerecho = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 5));
+        JPanel panelDerecho = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         panelDerecho.setBackground(FONDO);
         btnCerrarSesion = new JButton("CERRAR SESIÓN");
         btnCerrarSesion.setBackground(CAFE);
@@ -135,14 +164,14 @@ public class CocineroVista extends JFrame {
 
         tablaPedidos.getSelectionModel().addListSelectionListener(e -> {
 
-            if(!e.getValueIsAdjusting()){
+            if (!e.getValueIsAdjusting()) {
 
                 int fila = tablaPedidos.getSelectedRow();
 
-                if(fila != -1){
+                if (fila != -1) {
 
                     int idPedido = Integer.parseInt(
-                            tablaPedidos.getValueAt(fila,0).toString()
+                            tablaPedidos.getValueAt(fila, 0).toString()
                     );
 
                     cargarDetalle(idPedido);
@@ -162,82 +191,96 @@ public class CocineroVista extends JFrame {
         });
     }
 
-    private void cargarPedidos(){
+    private void cargarPedidos() {
+
+        // Guardar selección actual
+        int filaSeleccionada = tablaPedidos.getSelectedRow();
+        int idSeleccionado = -1;
+        if (filaSeleccionada != -1) {
+            idSeleccionado = Integer.parseInt(tablaPedidos.getValueAt(filaSeleccionada, 0).toString());
+        }
 
         modeloPedidos.setRowCount(0);
 
-        try{
+        try (Connection con = ConexionBD.conectar();
+             PreparedStatement ps = con.prepareStatement(
+                     "SELECT id, nombre_cliente, fecha, estado, modificado, "
+                     + "COALESCE(nombre_usuario_crea, '') AS creador "
+                     + "FROM pedidos "
+                     + "WHERE estado != 'Listo' AND estado != 'Anulado' "
+                     + "AND (estado != 'Pagado' OR fue_listo = FALSE) "
+                     + "ORDER BY id ASC");
+             ResultSet rs = ps.executeQuery()) {
 
-            Connection con = ConexionBD.conectar();
+            int fila = 0;
+            boolean encontrado = false;
+            while (rs.next()) {
 
-            String sql =
-                    "SELECT id,nombre_cliente,fecha,estado, "
-                    + "COALESCE(nombre_usuario_crea,'') AS creador "
-                    + "FROM pedidos "
-                    + "WHERE estado NOT IN ('Listo','Completado') "
-                    + "ORDER BY id ASC";
-
-            PreparedStatement ps = con.prepareStatement(sql);
-
-            ResultSet rs = ps.executeQuery();
-
-            while(rs.next()){
+                String estado = rs.getString("estado");
+                if (rs.getBoolean("modificado") && !"Pagado".equals(estado)) {
+                    estado = estado + " (Modificado)";
+                }
 
                 modeloPedidos.addRow(new Object[]{
                     rs.getInt("id"),
                     rs.getString("nombre_cliente"),
                     rs.getTimestamp("fecha"),
-                    rs.getString("estado"),
+                    estado,
                     rs.getString("creador")
                 });
+
+                if (rs.getInt("id") == idSeleccionado) {
+                    tablaPedidos.setRowSelectionInterval(fila, fila);
+                    encontrado = true;
+                }
+                fila++;
             }
 
-        }catch(Exception ex){
+            if (!encontrado) {
+                modeloDetalle.setRowCount(0);
+            }
+
+        } catch (Exception ex) {
 
             JOptionPane.showMessageDialog(this, "Error al cargar pedidos:\n" + ex.getMessage());
         }
     }
 
-    private void cargarDetalle(int idPedido){
+    private void cargarDetalle(int idPedido) {
 
         modeloDetalle.setRowCount(0);
 
-        try{
+        try (Connection con = ConexionBD.conectar();
+             PreparedStatement ps = con.prepareStatement(
+                     "SELECT nombre_producto, cantidad, precio, subtotal "
+                     + "FROM detalle_pedido "
+                     + "WHERE id_pedido = ?")) {
 
-            Connection con = ConexionBD.conectar();
+            ps.setInt(1, idPedido);
 
-            String sql =
-                    "SELECT nombre_producto,cantidad,precio,subtotal "
-                    + "FROM detalle_pedido "
-                    + "WHERE id_pedido=?";
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
 
-            PreparedStatement ps = con.prepareStatement(sql);
-
-            ps.setInt(1,idPedido);
-
-            ResultSet rs = ps.executeQuery();
-
-            while(rs.next()){
-
-                modeloDetalle.addRow(new Object[]{
-                    rs.getString("nombre_producto"),
-                    rs.getInt("cantidad"),
-                    rs.getDouble("precio"),
-                    rs.getDouble("subtotal")
-                });
+                    modeloDetalle.addRow(new Object[]{
+                        rs.getString("nombre_producto"),
+                        rs.getInt("cantidad"),
+                        rs.getDouble("precio"),
+                        rs.getDouble("subtotal")
+                    });
+                }
             }
 
-        }catch(Exception ex){
+        } catch (Exception ex) {
 
             JOptionPane.showMessageDialog(this, "Error al cargar detalle:\n" + ex.getMessage());
         }
     }
 
-    private void actualizarEstado(String estado){
+    private void actualizarEstado(String estado) {
 
         int fila = tablaPedidos.getSelectedRow();
 
-        if(fila == -1){
+        if (fila == -1) {
 
             JOptionPane.showMessageDialog(
                     this,
@@ -248,31 +291,60 @@ public class CocineroVista extends JFrame {
         }
 
         int idPedido = Integer.parseInt(
-                tablaPedidos.getValueAt(fila,0).toString()
+                tablaPedidos.getValueAt(fila, 0).toString()
         );
 
-        try{
+        String estadoActual = modeloPedidos.getValueAt(fila, 3).toString();
+        // Quitar sufijo "(Modificado)" para comparar
+        String estadoBase = estadoActual.replace(" (Modificado)", "");
 
-            Connection con = ConexionBD.conectar();
+        if ("Listo".equals(estadoBase) || "Anulado".equals(estadoBase)) {
+            JOptionPane.showMessageDialog(this, "Este pedido ya está " + estadoBase.toLowerCase() + ".");
+            return;
+        }
 
-            String sql =
-                    "UPDATE pedidos "
-                    + "SET estado=?, id_usuario_prepara=?, nombre_usuario_prepara=? "
-                    + "WHERE id=?";
+        if ("Preparando".equals(estado)) {
+            if (!"Pendiente".equals(estadoBase) && !"Pagado".equals(estadoBase)) {
+                JOptionPane.showMessageDialog(this, "No se puede marcar Preparando desde " + estadoActual + ".");
+                return;
+            }
+            if ("Preparando".equals(estadoBase)) {
+                JOptionPane.showMessageDialog(this, "El pedido ya está en preparación.");
+                return;
+            }
+        } else {
+            if (!"Preparando".equals(estadoBase)) {
+                JOptionPane.showMessageDialog(this, "Solo se puede marcar Listo desde Preparando.");
+                return;
+            }
+        }
 
-            PreparedStatement ps = con.prepareStatement(sql);
+        String origen = "Preparando".equals(estado) ? estadoBase : "Preparando";
 
-            ps.setString(1,estado);
-            ps.setInt(2, Clases.Sesion.id);
-            ps.setString(3, Clases.Sesion.nombre);
-            ps.setInt(4,idPedido);
+        try (Connection con = ConexionBD.conectar();
+             PreparedStatement ps = con.prepareStatement(
+                     "UPDATE pedidos "
+                     + "SET estado=?, id_usuario_prepara=?, nombre_usuario_prepara=?, modificado=FALSE, "
+                     + "fue_listo = IF(? = 'Listo', TRUE, fue_listo) "
+                     + "WHERE id=? AND estado=?")) {
 
-            ps.executeUpdate();
+            ps.setString(1, estado);
+            ps.setInt(2, Clases.GuardarSesion.id);
+            ps.setString(3, Clases.GuardarSesion.nombre);
+            ps.setString(4, estado);
+            ps.setInt(5, idPedido);
+            ps.setString(6, origen);
+
+            int filas = ps.executeUpdate();
+
+            if (filas == 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Otro cocinero ya actualizó este pedido. Recargando...");
+            }
 
             cargarPedidos();
-            modeloDetalle.setRowCount(0);
 
-        }catch(Exception ex){
+        } catch (Exception ex) {
 
             JOptionPane.showMessageDialog(this, "Error al actualizar estado:\n" + ex.getMessage());
         }

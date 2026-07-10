@@ -14,6 +14,8 @@ public class Login extends javax.swing.JFrame {
 
     public Login() {
         initComponents();
+        setTitle("CAFé COMETA - LOGIN");
+        Password.addActionListener(e -> inicioSesionActionPerformed(null));
     }
 
     @SuppressWarnings("unchecked")
@@ -130,45 +132,47 @@ public class Login extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void inicioSesionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_inicioSesionActionPerformed
-        String usuario = correo.getText();
+        String usuario = correo.getText().trim();
         String pass = new String(Password.getPassword());
 
-        try {
-            java.sql.Connection con = Clases.ConexionBD.conectar();
-            String sql = "SELECT * FROM usuarios WHERE usuario=? AND contraseña=?";
-            java.sql.PreparedStatement ps = con.prepareStatement(sql);
+        try (java.sql.Connection con = Clases.ConexionBD.conectar();
+             java.sql.PreparedStatement ps = con.prepareStatement("SELECT * FROM usuarios WHERE usuario=?")) {
             ps.setString(1, usuario);
-            ps.setString(2, pass);
             java.sql.ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
+                String hashAlmacenado = rs.getString("contraseña");
+                if (!Clases.PasswordUtil.verificar(pass, hashAlmacenado)) {
+                    JOptionPane.showMessageDialog(this, "Usuario o contraseña incorrecta");
+                    Password.setText("");
+                    return;
+                }
+
                 String rol = rs.getString("rol");
                 int userId = rs.getInt("id");
                 String userName = rs.getString("usuario");
-                Clases.Sesion.iniciar(userId, userName, rol);
+                String userNombres = rs.getString("nombres");
+                String userApellidos = rs.getString("apellidos");
+                Clases.GuardarSesion.iniciar(userId, userName, rol, userNombres, userApellidos);
                 JOptionPane.showMessageDialog(this, "Bienvenido " + userName + "\nRol: " + rol);
 
                 switch (rol.toUpperCase()) {
                     case "CAJERO":
                         Cajero caja = new Cajero();
                         caja.setVisible(true);
-                        caja.setLocationRelativeTo(null);
                         break;
                     case "EMPLEADO":
                         Menu menu = new Menu();
                         menu.setVisible(true);
-                        menu.setLocationRelativeTo(null);
                         break;
                     case "COCINERO":
                         CocineroVista cocina = new CocineroVista();
-                        cocina.setLocationRelativeTo(null);
                         cocina.setVisible(true);
                         break;
                     case "ADMINISTRATIVO":
                     case "JEFE":
                         PanelSelector selector = new PanelSelector();
                         selector.setVisible(true);
-                        selector.setLocationRelativeTo(null);
                         break;
 
                     default:
@@ -179,10 +183,8 @@ public class Login extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "Usuario o contraseña incorrecta");
                 Password.setText("");
             }
-            con.close();
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage()
-            );
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
         }
     }//GEN-LAST:event_inicioSesionActionPerformed
 
