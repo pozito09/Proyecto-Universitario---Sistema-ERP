@@ -8,6 +8,7 @@ import java.awt.*;
 import java.sql.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import Clases.Auditoria;
 
 public class GestionProveedores extends javax.swing.JFrame {
 
@@ -265,7 +266,7 @@ public class GestionProveedores extends javax.swing.JFrame {
         String sql = "INSERT INTO proveedores(nombre, ruc, telefono, direccion, correo) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection con = ConexionBD.conectar();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+             PreparedStatement ps = con.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
 
             ps.setString(1, txtNombre.getText());
             ps.setString(2, txtRuc.getText());
@@ -274,6 +275,12 @@ public class GestionProveedores extends javax.swing.JFrame {
             ps.setString(5, txtCorreo.getText());
 
             ps.executeUpdate();
+
+            try (ResultSet rsKeys = ps.getGeneratedKeys()) {
+                if (rsKeys.next()) {
+                    Auditoria.crear("proveedores", rsKeys.getInt(1), "Proveedor: " + txtNombre.getText().trim());
+                }
+            }
 
             JOptionPane.showMessageDialog(this, "Proveedor registrado correctamente.");
             limpiarCampos();
@@ -305,6 +312,7 @@ public class GestionProveedores extends javax.swing.JFrame {
 
             ps.executeUpdate();
 
+            Auditoria.editar("proveedores", Integer.parseInt(txtId.getText()), "Proveedor: " + txtNombre.getText().trim());
             JOptionPane.showMessageDialog(this, "Proveedor actualizado correctamente.");
             limpiarCampos();
             cargarTabla("");
@@ -321,6 +329,7 @@ public class GestionProveedores extends javax.swing.JFrame {
             return;
         }
         int id = (int) tabla.getValueAt(fila, 0);
+        String nombreProveedor = tabla.getValueAt(fila, 1).toString();
 
         int confirmacion = JOptionPane.showConfirmDialog(this, "¿Deseas eliminar este proveedor?", "Confirmar", JOptionPane.YES_NO_OPTION);
 
@@ -339,6 +348,7 @@ public class GestionProveedores extends javax.swing.JFrame {
                     ps.setInt(1, id);
                     ps.executeUpdate();
                 }
+                Auditoria.eliminar("proveedores", id, nombreProveedor);
                 JOptionPane.showMessageDialog(this, "Proveedor eliminado correctamente.");
                 limpiarCampos();
                 cargarTabla("");

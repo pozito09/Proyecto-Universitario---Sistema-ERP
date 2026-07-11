@@ -2,7 +2,6 @@ package Compras;
 
 import static Clases.Colores.*;
 import Clases.Botones;
-import Compras.OpcionesCompra;
 import Clases.ConexionBD;
 import java.awt.*;
 import java.sql.Connection;
@@ -11,6 +10,7 @@ import java.sql.ResultSet;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import Clases.Auditoria;
 
 public class GestionCompras extends JFrame {
 
@@ -146,6 +146,7 @@ public class GestionCompras extends JFrame {
                 ps.setString(1, nuevoEstado);
                 ps.setInt(2, id);
                 ps.executeUpdate();
+                Auditoria.editar("compras", id, "Estado cambiado a " + nuevoEstado);
                 cargarCompras();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
@@ -197,6 +198,7 @@ public class GestionCompras extends JFrame {
                 }
 
                 con.commit();
+                Auditoria.eliminar("compras", id, "Compra #" + id + " eliminada");
                 cargarCompras();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());

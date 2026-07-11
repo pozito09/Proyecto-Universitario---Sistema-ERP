@@ -3,7 +3,6 @@ package Productos;
 import static Clases.Colores.*;
 import Clases.Botones;
 
-import Productos.OpcionesProducto;
 import Clases.ConexionBD;
 
 import java.awt.*;
@@ -19,6 +18,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import Clases.Auditoria;
 
 public class GestionProductos extends JFrame {
 
@@ -396,6 +396,7 @@ public class GestionProductos extends JFrame {
                     return;
                 }
             }
+            Auditoria.editar("productos", id, "Producto: " + nombre);
             JOptionPane.showMessageDialog(dlg, "Producto actualizado correctamente.");
             dlg.dispose();
             cargarProductos();
@@ -434,6 +435,7 @@ public class GestionProductos extends JFrame {
                  PreparedStatement ps = con.prepareStatement("DELETE FROM productos WHERE id=?")) {
                 ps.setInt(1, id);
                 ps.executeUpdate();
+                Auditoria.eliminar("productos", id, nombre);
                 cargarProductos();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Error al eliminar: " + ex.getMessage());

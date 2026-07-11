@@ -68,7 +68,7 @@ public class listaMenu extends javax.swing.JFrame {
         }
 
         try (java.sql.Connection con = Clases.ConexionBD.conectar()) {
-            String sql = "SELECT nombre_cliente, estado FROM pedidos WHERE id = ?";
+            String sql = "SELECT nombre_cliente, estado_cocina, estado_pago FROM pedidos WHERE id = ?";
             try (java.sql.PreparedStatement ps = con.prepareStatement(sql)) {
                 ps.setInt(1, id);
                 try (java.sql.ResultSet rs = ps.executeQuery()) {
@@ -76,10 +76,9 @@ public class listaMenu extends javax.swing.JFrame {
                         javax.swing.JOptionPane.showMessageDialog(this, "Pedido no encontrado.");
                         return;
                     }
-                    String estado = rs.getString("estado");
-                    if ("Pagado".equals(estado) || "Anulado".equals(estado)) {
+                    if ("Pagado".equals(rs.getString("estado_pago")) || "Anulado".equals(rs.getString("estado_pago"))) {
                         javax.swing.JOptionPane.showMessageDialog(this,
-                                "No se puede modificar un pedido " + estado.toLowerCase() + ".");
+                                "No se puede modificar un pedido pagado o anulado.");
                         jTextField2.setText("");
                         limpiarFormulario();
                         return;
@@ -402,14 +401,14 @@ public class listaMenu extends javax.swing.JFrame {
             // Verificar que el pedido no esté Pagado o Anulado
             int idModificar = Integer.parseInt(idModificarStr);
             try (java.sql.Connection con = Clases.ConexionBD.conectar();
-                 java.sql.PreparedStatement ps = con.prepareStatement("SELECT estado FROM pedidos WHERE id = ?")) {
+                 java.sql.PreparedStatement ps = con.prepareStatement("SELECT estado_pago FROM pedidos WHERE id = ?")) {
                 ps.setInt(1, idModificar);
                 try (java.sql.ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        String est = rs.getString("estado");
-                        if ("Pagado".equals(est) || "Anulado".equals(est)) {
+                        String estadoPago = rs.getString("estado_pago");
+                        if ("Pagado".equals(estadoPago) || "Anulado".equals(estadoPago)) {
                             javax.swing.JOptionPane.showMessageDialog(this,
-                                    "No se puede modificar un pedido " + est.toLowerCase() + ".");
+                                    "No se puede modificar un pedido pagado o anulado.");
                             jTextField2.setText("");
                             limpiarFormulario();
                             return;
@@ -511,7 +510,7 @@ public class listaMenu extends javax.swing.JFrame {
         try (java.sql.Connection con = Clases.ConexionBD.conectar()) {
             con.setAutoCommit(false);
             try {
-                String sqlPedido = "INSERT INTO pedidos (nombre_cliente, total, estado, id_apertura, id_usuario_crea, nombre_usuario_crea) VALUES (?, ?, 'Pendiente', ?, ?, ?)";
+                String sqlPedido = "INSERT INTO pedidos (nombre_cliente, total, estado_cocina, estado_pago, id_apertura, id_usuario_crea, nombre_usuario_crea) VALUES (?, ?, 'Pendiente', 'En cola', ?, ?, ?)";
                 java.sql.PreparedStatement ps = con.prepareStatement(sqlPedido, java.sql.Statement.RETURN_GENERATED_KEYS);
                 ps.setString(1, nombreCliente);
                 ps.setDouble(2, total);
@@ -661,7 +660,7 @@ public class listaMenu extends javax.swing.JFrame {
             }
 
             // Actualizar cabecera
-            String sqlUpdate = "UPDATE pedidos SET nombre_cliente=?, total=?, modificado=TRUE, estado= CASE WHEN estado IN ('Preparando','Listo') THEN 'Pendiente' ELSE estado END WHERE id=?";
+            String sqlUpdate = "UPDATE pedidos SET nombre_cliente=?, total=?, modificado=TRUE, estado_cocina= CASE WHEN estado_cocina IN ('Preparando','Listo') THEN 'Pendiente' ELSE estado_cocina END WHERE id=?";
             try (java.sql.PreparedStatement psUpd = con.prepareStatement(sqlUpdate)) {
                 psUpd.setString(1, nombreCliente);
                 psUpd.setDouble(2, total);
@@ -682,6 +681,44 @@ public class listaMenu extends javax.swing.JFrame {
 
     private boolean deducirStock(java.sql.Connection con, javax.swing.table.DefaultTableModel modelo)
             throws java.sql.SQLException {
+        // Primero verificar stock suficiente de cada producto
+        StringBuilder sinStock = new StringBuilder();
+        StringBuilder stockBajo = new StringBuilder();
+        String sqlCheck = "SELECT stock FROM productos WHERE nombre = ?";
+        try (java.sql.PreparedStatement psCheck = con.prepareStatement(sqlCheck)) {
+            for (int i = 0; i < modelo.getRowCount(); i++) {
+                String nombre = (String) modelo.getValueAt(i, 0);
+                int cantidad = (int) modelo.getValueAt(i, 1);
+                psCheck.setString(1, nombre);
+                try (java.sql.ResultSet rs = psCheck.executeQuery()) {
+                    if (rs.next()) {
+                        int stock = rs.getInt("stock");
+                        if (stock < cantidad) {
+                            if (sinStock.length() > 0) sinStock.append(", ");
+                            sinStock.append(nombre).append(" (disponible: ").append(stock).append(", necesario: ").append(cantidad).append(")");
+                        } else if (stock - cantidad <= 2) {
+                            if (stockBajo.length() > 0) stockBajo.append(", ");
+                            stockBajo.append(nombre).append(" (quedarán: ").append(stock - cantidad).append(")");
+                        }
+                    }
+                }
+            }
+        }
+
+        if (sinStock.length() > 0) {
+            javax.swing.JOptionPane.showMessageDialog(this,
+                    "No hay suficiente stock para:\n" + sinStock.toString(),
+                    "Stock insuficiente", javax.swing.JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+
+        if (stockBajo.length() > 0) {
+            javax.swing.JOptionPane.showMessageDialog(this,
+                    "Productos con stock bajo:\n" + stockBajo.toString(),
+                    "Stock bajo", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+        }
+
+        // Proceder con la deducción
         String sql = "UPDATE productos SET stock = stock - ? WHERE nombre = ? AND stock >= ?";
         try (java.sql.PreparedStatement ps = con.prepareStatement(sql)) {
             for (int i = 0; i < modelo.getRowCount(); i++) {

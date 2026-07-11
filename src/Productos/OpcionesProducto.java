@@ -1,6 +1,7 @@
 package Productos;
 
 import static Clases.Colores.*;
+import Clases.Auditoria;
 
 import java.io.ByteArrayOutputStream;
 import java.awt.*;
@@ -194,11 +195,6 @@ public class OpcionesProducto extends JPanel {
     }
 
     private void seleccionarImagen() {
-        try {
-            javax.swing.UIManager.setLookAndFeel(javax.swing.UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception ex) {
-        }
-
         JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Seleccionar imagen del producto");
         fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
@@ -252,7 +248,7 @@ public class OpcionesProducto extends JPanel {
 
         // Guardar en BD
         String sql = "INSERT INTO productos (nombre, descripcion, categoria, precio, emoji, imagen) VALUES (?,?,?,?,?,?)";
-        try (java.sql.Connection con = Clases.ConexionBD.conectar(); java.sql.PreparedStatement ps = con.prepareStatement(sql)) {
+        try (java.sql.Connection con = Clases.ConexionBD.conectar(); java.sql.PreparedStatement ps = con.prepareStatement(sql, java.sql.PreparedStatement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, nombre);
             ps.setString(2, descripcion);
             ps.setString(3, categoria);
@@ -264,6 +260,11 @@ public class OpcionesProducto extends JPanel {
                 ps.setNull(6, java.sql.Types.BLOB);
             }
             ps.executeUpdate();
+            try (java.sql.ResultSet rsKeys = ps.getGeneratedKeys()) {
+                if (rsKeys.next()) {
+                    Auditoria.crear("productos", rsKeys.getInt(1), "Producto: " + nombre);
+                }
+            }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
                     "Error al guardar en BD: " + ex.getMessage(),

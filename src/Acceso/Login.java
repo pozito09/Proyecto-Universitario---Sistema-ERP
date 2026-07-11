@@ -153,7 +153,7 @@ public class Login extends javax.swing.JFrame {
                 String userName = rs.getString("usuario");
                 String userNombres = rs.getString("nombres");
                 String userApellidos = rs.getString("apellidos");
-                Clases.GuardarSesion.iniciar(userId, userName, rol, userNombres, userApellidos);
+                Clases.GuardarSesion.iniciar(userId, userName, userNombres, userApellidos);
                 JOptionPane.showMessageDialog(this, "Bienvenido " + userName + "\nRol: " + rol);
 
                 switch (rol.toUpperCase()) {

@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import Clases.Auditoria;
 
 public class GestionInventario extends JFrame {
 
@@ -168,12 +169,17 @@ public class GestionInventario extends JFrame {
             double minimo = Double.parseDouble(txtMinimo.getText().trim().replace(",", "."));
             String sql = "INSERT INTO insumos (nombre, unidad, stock, stock_minimo) VALUES (?,?,?,?)";
             try (Connection con = ConexionBD.conectar();
-                 PreparedStatement ps = con.prepareStatement(sql)) {
+                 PreparedStatement ps = con.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
                 ps.setString(1, nombre);
                 ps.setString(2, unidad);
                 ps.setDouble(3, stock);
                 ps.setDouble(4, minimo);
                 ps.executeUpdate();
+                try (ResultSet rsKeys = ps.getGeneratedKeys()) {
+                    if (rsKeys.next()) {
+                        Auditoria.crear("insumos", rsKeys.getInt(1), "Insumo: " + nombre);
+                    }
+                }
                 JOptionPane.showMessageDialog(this, "Insumo agregado correctamente.");
                 cargarInventario();
             }
@@ -222,6 +228,7 @@ public class GestionInventario extends JFrame {
                 ps2.setDouble(3, minimo);
                 ps2.setInt(4, id);
                 ps2.executeUpdate();
+                Auditoria.editar("insumos", id, "Insumo: " + txtNombre.getText().trim());
                 JOptionPane.showMessageDialog(this, "Insumo actualizado.");
                 cargarInventario();
             }
@@ -265,6 +272,7 @@ public class GestionInventario extends JFrame {
                 ps4.executeUpdate();
             }
             con.commit();
+            Auditoria.eliminar("insumos", id, nombre);
             JOptionPane.showMessageDialog(this, "Insumo eliminado.");
             cargarInventario();
         } catch (Exception ex) {

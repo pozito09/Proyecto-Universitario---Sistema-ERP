@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import Clases.Auditoria;
 
 public class RRHH extends JFrame {
 
@@ -271,7 +272,7 @@ public class RRHH extends JFrame {
                 return;
             }
             try (Connection con = ConexionBD.conectar();
-                 PreparedStatement ps = con.prepareStatement("INSERT INTO usuarios (usuario, contraseña, nombres, apellidos, telefono, rol) VALUES (?,?,?,?,?,?)")) {
+                 PreparedStatement ps = con.prepareStatement("INSERT INTO usuarios (usuario, contraseña, nombres, apellidos, telefono, rol) VALUES (?,?,?,?,?,?)", PreparedStatement.RETURN_GENERATED_KEYS)) {
                 ps.setString(1, usuario);
                 ps.setString(2, PasswordUtil.hash(contrasena));
                 ps.setString(3, nombres.isEmpty() ? "" : nombres);
@@ -279,6 +280,11 @@ public class RRHH extends JFrame {
                 ps.setString(5, telefono.isEmpty() ? null : telefono);
                 ps.setString(6, rol);
                 ps.executeUpdate();
+                try (ResultSet rsKeys = ps.getGeneratedKeys()) {
+                    if (rsKeys.next()) {
+                        Auditoria.crear("usuarios", rsKeys.getInt(1), "Usuario: " + usuario);
+                    }
+                }
                 JOptionPane.showMessageDialog(dlg, "Usuario creado correctamente.");
                 dlg.dispose();
                 cargarUsuarios();
@@ -433,6 +439,7 @@ public class RRHH extends JFrame {
                     ps.setInt(6, id);
                 }
                 ps.executeUpdate();
+                Auditoria.editar("usuarios", id, "Usuario: " + usuario);
                 JOptionPane.showMessageDialog(dlg, "Usuario actualizado correctamente.");
                 dlg.dispose();
                 cargarUsuarios();
@@ -459,9 +466,9 @@ public class RRHH extends JFrame {
             return;
         }
         int id = (int) modelo.getValueAt(fila, 0);
-        String nombre = modelo.getValueAt(fila, 1).toString();
+        String nombreUsuario = modelo.getValueAt(fila, 1).toString();
         int conf = JOptionPane.showConfirmDialog(this,
-                "¿Desea eliminar al usuario \"" + nombre + "\"?",
+                "¿Desea eliminar al usuario \"" + nombreUsuario + "\"?",
                 "Confirmar eliminación",
                 JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
         if (conf != JOptionPane.YES_OPTION) return;
@@ -470,6 +477,7 @@ public class RRHH extends JFrame {
              PreparedStatement ps = con.prepareStatement("DELETE FROM usuarios WHERE id=?")) {
             ps.setInt(1, id);
             ps.executeUpdate();
+            Auditoria.eliminar("usuarios", id, nombreUsuario);
             JOptionPane.showMessageDialog(this, "Usuario eliminado.");
             cargarUsuarios();
         } catch (Exception ex) {

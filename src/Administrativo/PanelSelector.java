@@ -8,7 +8,6 @@ import Productos.GestionProductos;
 import Inventario.GestionInventario;
 import Compras.GestionCompras;
 import Caja.ControlCaja;
-import Clientes.GestionClientes;
 import Proveedores.GestionProveedores;
 import RRHH.RRHH;
 import Finanzas.ModuloFinanciero;
@@ -84,7 +83,6 @@ public class PanelSelector extends JFrame {
             new AreaCard("Inventario",  "Stock y alertas", CAFE, GestionInventario::abrir),
             new AreaCard("Compras",     "Órdenes a proveedores", CAFE, GestionCompras::abrir),
             new AreaCard("Proveedores", "Gestión de proveedores", DORADO, GestionProveedores::abrir),
-            new AreaCard("Clientes",    "Gestión de clientes", TEXTO_CLARO, GestionClientes::abrir),
             new AreaCard("Caja",        "Control de caja diario", VERDE, ControlCaja::abrir),
             new AreaCard("Empresa",     "Datos del negocio", DORADO, DatosEmpresa::abrir),
             new AreaCard("RRHH", "Empleados y usuarios", DORADO_CLARO, RRHH::abrir),

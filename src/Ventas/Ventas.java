@@ -14,6 +14,7 @@ import java.sql.Statement;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import Clases.Auditoria;
 
 public class Ventas extends JFrame {
 
@@ -207,6 +208,7 @@ public class Ventas extends JFrame {
             return;
         }
         int id = (int) modelo.getValueAt(fila, 0);
+        double totalVenta = (double) modelo.getValueAt(fila, 4);
                     String estadoActual = modelo.getValueAt(fila, 5).toString();
 
         if (estadoActual.equals("Anulado")) {
@@ -270,12 +272,13 @@ public class Ventas extends JFrame {
                         // No hay recetas definidas
                     }
 
-                try (PreparedStatement ps = con.prepareStatement("UPDATE pedidos SET estado='Anulado', pagado=FALSE WHERE id=?")) {
+                try (PreparedStatement ps = con.prepareStatement("UPDATE pedidos SET estado_pago='Anulado', estado_cocina=NULL WHERE id=?")) {
                     ps.setInt(1, id);
                     ps.executeUpdate();
                 }
 
                 con.commit();
+                Auditoria.anular("pedidos", id, "Venta #" + id + " anulada, total: S/ " + String.format("%.2f", totalVenta));
                 cargarVentas();
                 JOptionPane.showMessageDialog(this, "Venta ID " + id + " anulada correctamente.");
             } catch (Exception ex) {
@@ -293,19 +296,19 @@ public class Ventas extends JFrame {
 
         switch (filtro) {
             case "Hoy":
-                sql = "SELECT * FROM pedidos WHERE DATE(fecha) = CURDATE() ORDER BY id DESC";
+                sql = "SELECT id, nombre_cliente, tipo_pedido, fecha, total, estado_pago FROM pedidos WHERE estado_pago IN ('Pagado','Anulado') AND DATE(fecha) = CURDATE() ORDER BY id DESC";
                 break;
             case "Este Mes":
-                sql = "SELECT * FROM pedidos WHERE MONTH(fecha) = MONTH(CURDATE()) AND YEAR(fecha) = YEAR(CURDATE()) ORDER BY id DESC";
+                sql = "SELECT id, nombre_cliente, tipo_pedido, fecha, total, estado_pago FROM pedidos WHERE estado_pago IN ('Pagado','Anulado') AND MONTH(fecha) = MONTH(CURDATE()) AND YEAR(fecha) = YEAR(CURDATE()) ORDER BY id DESC";
                 break;
             case "Mes...": {
                 int mes = cmbMes.getSelectedIndex() + 1;
                 int anio = (int) spAnio.getValue();
-                sql = "SELECT * FROM pedidos WHERE MONTH(fecha) = ? AND YEAR(fecha) = ? ORDER BY id DESC";
+                sql = "SELECT id, nombre_cliente, tipo_pedido, fecha, total, estado_pago FROM pedidos WHERE estado_pago IN ('Pagado','Anulado') AND MONTH(fecha) = ? AND YEAR(fecha) = ? ORDER BY id DESC";
                 break;
             }
             default:
-                sql = "SELECT * FROM pedidos ORDER BY id DESC";
+                sql = "SELECT id, nombre_cliente, tipo_pedido, fecha, total, estado_pago FROM pedidos WHERE estado_pago IN ('Pagado','Anulado') ORDER BY id DESC";
                 break;
         }
 
@@ -322,8 +325,8 @@ public class Ventas extends JFrame {
 
             while (rs.next()) {
                 double total = rs.getDouble("total");
-                String estado = rs.getString("estado");
-                if (rs.getBoolean("pagado")) {
+                String estadoPago = rs.getString("estado_pago");
+                if ("Pagado".equals(estadoPago)) {
                     totalFiltrado += total;
                 }
                 modelo.addRow(new Object[]{
@@ -332,14 +335,14 @@ public class Ventas extends JFrame {
                     rs.getString("tipo_pedido"),
                     rs.getTimestamp("fecha"),
                     total,
-                    rs.getString("estado")
+                    rs.getString("estado_pago")
                 });
             }
 
             // Tarjeta 1: siempre ventas del día (solo pagados)
             try (Statement st = con.createStatement()) {
                 ResultSet rsDia = st.executeQuery(
-                    "SELECT COALESCE(SUM(total),0) FROM pedidos WHERE DATE(fecha) = CURDATE() AND pagado = TRUE");
+                    "SELECT COALESCE(SUM(total),0) FROM pedidos WHERE DATE(fecha) = CURDATE() AND estado_pago = 'Pagado'");
                 lblValorDia.setText("S/ " + String.format("%,.2f", rsDia.next() ? rsDia.getDouble(1) : 0));
             }
 

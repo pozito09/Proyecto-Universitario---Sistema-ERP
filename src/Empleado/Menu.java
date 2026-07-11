@@ -419,14 +419,6 @@ public class Menu extends javax.swing.JFrame {
         productos = CatalogoProductos.obtenerProductos();
     }
 
-    public void refrescarCatalogo() {
-        inicializarProductos();
-        Café.removeAll();
-        Emparedados.removeAll();
-        Postres.removeAll();
-        cargarCatalogo();
-    }
-
     // ── Cargar productos en los paneles del Designer ──────────────────
     private void cargarCatalogo() {
         // Configura el layout de cada panel del Designer

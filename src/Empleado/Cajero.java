@@ -186,7 +186,7 @@ public class Cajero extends JFrame {
         nombreCocinero = null;
 
         try (Connection con = ConexionBD.conectar()) {
-            String sql = "SELECT p.id, p.nombre_cliente, p.total, p.estado,"
+            String sql = "SELECT p.id, p.nombre_cliente, p.total, p.estado_cocina, p.estado_pago,"
                     + " COALESCE(CONCAT_WS(' ', u_crea.nombres, u_crea.apellidos), '') AS nom_mesero,"
                     + " COALESCE(CONCAT_WS(' ', u_prepara.nombres, u_prepara.apellidos), '') AS nom_cocinero"
                     + " FROM pedidos p"
@@ -205,11 +205,10 @@ public class Cajero extends JFrame {
                     idPedidoActual = rs.getInt("id");
                     clienteActual = rs.getString("nombre_cliente");
                     totalActual = rs.getDouble("total");
-                    String estado = rs.getString("estado");
                     nombreMesero = rs.getString("nom_mesero");
                     nombreCocinero = rs.getString("nom_cocinero");
 
-                    if ("Pagado".equals(estado)) {
+                    if ("Pagado".equals(rs.getString("estado_pago"))) {
                         JOptionPane.showMessageDialog(this, "Este pedido ya fue pagado.", "Aviso", JOptionPane.WARNING_MESSAGE);
                         limpiar();
                         return;
@@ -315,7 +314,7 @@ public class Cajero extends JFrame {
             con.setAutoCommit(false);
 
             int idAperturaActual = Caja.ControlCaja.getCajaActivaId();
-            String sql = "UPDATE pedidos SET estado = 'Pagado', pagado = TRUE, metodo_pago = ?, monto_recibido = ?, vuelto = ?, id_usuario_cobra = ?, nombre_usuario_cobra = ?, id_apertura = ? WHERE id = ? AND estado != 'Pagado'";
+            String sql = "UPDATE pedidos SET estado_pago = 'Pagado', metodo_pago = ?, monto_recibido = ?, vuelto = ?, id_usuario_cobra = ?, nombre_usuario_cobra = ?, id_apertura = ? WHERE id = ? AND estado_pago = 'En cola'";
             int filasActualizadas;
             try (PreparedStatement ps = con.prepareStatement(sql)) {
                 ps.setString(1, metodoPago);

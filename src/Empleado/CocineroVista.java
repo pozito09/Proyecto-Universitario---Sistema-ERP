@@ -71,7 +71,8 @@ public class CocineroVista extends JFrame {
                     "ID",
                     "Cliente",
                     "Fecha",
-                    "Estado",
+                    "Estado 1 (Pago)",
+                    "Estado 2 (Prep.)",
                     "Creado por"
                 }, 0
         ) {
@@ -204,28 +205,30 @@ public class CocineroVista extends JFrame {
 
         try (Connection con = ConexionBD.conectar();
              PreparedStatement ps = con.prepareStatement(
-                     "SELECT id, nombre_cliente, fecha, estado, modificado, "
+                     "SELECT id, nombre_cliente, fecha, estado_cocina, estado_pago, modificado, "
                      + "COALESCE(nombre_usuario_crea, '') AS creador "
-                     + "FROM pedidos "
-                     + "WHERE estado != 'Listo' AND estado != 'Anulado' "
-                     + "AND (estado != 'Pagado' OR fue_listo = FALSE) "
-                     + "ORDER BY id ASC");
+                + "FROM pedidos "
+                + "WHERE estado_cocina != 'Listo' AND estado_pago != 'Anulado' "
+                + "ORDER BY id ASC");
              ResultSet rs = ps.executeQuery()) {
 
             int fila = 0;
             boolean encontrado = false;
             while (rs.next()) {
 
-                String estado = rs.getString("estado");
-                if (rs.getBoolean("modificado") && !"Pagado".equals(estado)) {
-                    estado = estado + " (Modificado)";
+                String estadoPago = rs.getString("estado_pago");
+
+                String estadoPrep = rs.getString("estado_cocina");
+                if (rs.getBoolean("modificado")) {
+                    estadoPrep = estadoPrep + " (Modificado)";
                 }
 
                 modeloPedidos.addRow(new Object[]{
                     rs.getInt("id"),
                     rs.getString("nombre_cliente"),
                     rs.getTimestamp("fecha"),
-                    estado,
+                    estadoPago,
+                    estadoPrep,
                     rs.getString("creador")
                 });
 
@@ -294,18 +297,18 @@ public class CocineroVista extends JFrame {
                 tablaPedidos.getValueAt(fila, 0).toString()
         );
 
-        String estadoActual = modeloPedidos.getValueAt(fila, 3).toString();
+        String estadoActual = modeloPedidos.getValueAt(fila, 4).toString();
         // Quitar sufijo "(Modificado)" para comparar
         String estadoBase = estadoActual.replace(" (Modificado)", "");
 
-        if ("Listo".equals(estadoBase) || "Anulado".equals(estadoBase)) {
-            JOptionPane.showMessageDialog(this, "Este pedido ya está " + estadoBase.toLowerCase() + ".");
+        if ("Listo".equals(estadoBase)) {
+            JOptionPane.showMessageDialog(this, "Este pedido ya está listo.");
             return;
         }
 
         if ("Preparando".equals(estado)) {
-            if (!"Pendiente".equals(estadoBase) && !"Pagado".equals(estadoBase)) {
-                JOptionPane.showMessageDialog(this, "No se puede marcar Preparando desde " + estadoActual + ".");
+            if (!"Pendiente".equals(estadoBase)) {
+                JOptionPane.showMessageDialog(this, "Solo se puede marcar Preparando desde Pendiente.");
                 return;
             }
             if ("Preparando".equals(estadoBase)) {
@@ -324,16 +327,14 @@ public class CocineroVista extends JFrame {
         try (Connection con = ConexionBD.conectar();
              PreparedStatement ps = con.prepareStatement(
                      "UPDATE pedidos "
-                     + "SET estado=?, id_usuario_prepara=?, nombre_usuario_prepara=?, modificado=FALSE, "
-                     + "fue_listo = IF(? = 'Listo', TRUE, fue_listo) "
-                     + "WHERE id=? AND estado=?")) {
+                     + "SET estado_cocina=?, id_usuario_prepara=?, nombre_usuario_prepara=?, modificado=FALSE "
+                     + "WHERE id=? AND estado_cocina=?")) {
 
             ps.setString(1, estado);
             ps.setInt(2, Clases.GuardarSesion.id);
             ps.setString(3, Clases.GuardarSesion.nombre);
-            ps.setString(4, estado);
-            ps.setInt(5, idPedido);
-            ps.setString(6, origen);
+            ps.setInt(4, idPedido);
+            ps.setString(5, origen);
 
             int filas = ps.executeUpdate();
 

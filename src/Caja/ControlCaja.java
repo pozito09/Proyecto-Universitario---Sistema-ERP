@@ -183,7 +183,7 @@ public class ControlCaja extends JFrame {
 
     private double getVentasDelDia(Connection con, int idApertura) {
         try (PreparedStatement ps = con.prepareStatement(
-                "SELECT COALESCE(SUM(total),0) total FROM pedidos WHERE id_apertura=? AND pagado = TRUE")) {
+                "SELECT COALESCE(SUM(total),0) total FROM pedidos WHERE id_apertura=? AND estado_pago = 'Pagado'")) {
             ps.setInt(1, idApertura);
             ResultSet rs = ps.executeQuery();
             return rs.next() ? rs.getDouble("total") : 0;
@@ -235,9 +235,9 @@ public class ControlCaja extends JFrame {
         if (desde == null) return 0;
         String sql;
         if (hasta != null) {
-            sql = "SELECT COALESCE(SUM(total),0) FROM pedidos WHERE id_apertura=? AND fecha BETWEEN ? AND ? AND pagado = TRUE";
+            sql = "SELECT COALESCE(SUM(total),0) FROM pedidos WHERE id_apertura=? AND fecha BETWEEN ? AND ? AND estado_pago = 'Pagado'";
         } else {
-            sql = "SELECT COALESCE(SUM(total),0) FROM pedidos WHERE id_apertura=? AND fecha >= ? AND pagado = TRUE";
+            sql = "SELECT COALESCE(SUM(total),0) FROM pedidos WHERE id_apertura=? AND fecha >= ? AND estado_pago = 'Pagado'";
         }
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, idApertura);
