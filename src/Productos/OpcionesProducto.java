@@ -12,6 +12,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.*;
 
+// ── DESCRIPCIÓN: Panel de formulario para agregar un nuevo producto con nombre, descripción, precio, categoría e imagen. ──
 public class OpcionesProducto extends JPanel {
 
     private JTextField txtNombre;
@@ -22,12 +23,14 @@ public class OpcionesProducto extends JPanel {
     private JLabel lblRutaImagen;
     private byte[] bytesImagenSeleccionada = null;
 
+    // ── DESCRIPCIÓN: Inicializa el panel con formulario y botones. ──
     public OpcionesProducto() {
         setLayout(new BorderLayout());
         setBackground(FONDO);
         initUI();
     }
 
+    // ── DESCRIPCIÓN: Construye el formulario: campos de texto, selector de categoría, selector de imagen con vista previa, botones limpiar/agregar. ──
     private void initUI() {
         // HEADER
         JPanel header = new JPanel(new BorderLayout());
@@ -194,6 +197,7 @@ public class OpcionesProducto extends JPanel {
         add(panelBotones, BorderLayout.SOUTH);
     }
 
+    // ── DESCRIPCIÓN: Abre selector de archivo de imagen, la convierte a bytes, y muestra vista previa. ──
     private void seleccionarImagen() {
         JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Seleccionar imagen del producto");
@@ -221,6 +225,7 @@ public class OpcionesProducto extends JPanel {
         }
     }
 
+    // ── DESCRIPCIÓN: Valida campos, guarda el producto en BD con imagen, y registra en auditoría. ──
     private void agregarProducto() {
         String nombre = txtNombre.getText().trim();
         if (nombre.isEmpty()) {
@@ -278,6 +283,7 @@ public class OpcionesProducto extends JPanel {
         limpiarFormulario();
     }
 
+    // ── DESCRIPCIÓN: Reinicia todos los campos y la vista previa de imagen. ──
     private void limpiarFormulario() {
         txtNombre.setText("");
         txtDescripcion.setText("");
@@ -289,6 +295,7 @@ public class OpcionesProducto extends JPanel {
         bytesImagenSeleccionada = null;
     }
 
+    // ── DESCRIPCIÓN: Crea un JLabel estilizado. ──
     private JLabel crearLabel(String texto) {
         JLabel lbl = new JLabel(texto);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -296,6 +303,7 @@ public class OpcionesProducto extends JPanel {
         return lbl;
     }
 
+    // ── DESCRIPCIÓN: Crea un JTextField con estilo uniforme. ──
     private JTextField crearCampo() {
         JTextField txt = new JTextField();
         txt.setFont(new Font("Segoe UI", Font.PLAIN, 14));

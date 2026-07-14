@@ -10,6 +10,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import Clases.Auditoria;
 
+// ── DESCRIPCIÓN: Módulo de gestión de proveedores. CRUD completo con formulario, búsqueda, y validación de campos. ──
 public class GestionProveedores extends javax.swing.JFrame {
 
     private JTextField txtId, txtNombre, txtRuc, txtTelefono, txtDireccion, txtCorreo, txtBuscar;
@@ -17,12 +18,14 @@ public class GestionProveedores extends javax.swing.JFrame {
     private JTable tabla;
     private DefaultTableModel modelo;
 
+    // ── DESCRIPCIÓN: Inicializa la interfaz y carga la tabla de proveedores. ──
     public GestionProveedores() {
         initComponents();
         setLocationRelativeTo(null);
         cargarTabla("");
     }
 
+    // ── DESCRIPCIÓN: Construye la interfaz: header, formulario (nombre/RUC/teléfono/dirección/correo), botones de acción, búsqueda, y tabla. ──
     private void initComponents() {
         setTitle("CAFÉ COMETA - GESTIÓN DE PROVEEDORES");
         setSize(1100, 750);
@@ -199,6 +202,7 @@ public class GestionProveedores extends javax.swing.JFrame {
         });
     }
 
+    // ── DESCRIPCIÓN: Carga proveedores de la BD filtrados por nombre o RUC. ──
     private void cargarTabla(String buscar) {
         modelo.setRowCount(0);
 
@@ -228,6 +232,7 @@ public class GestionProveedores extends javax.swing.JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Valida que el nombre no esté vacío, RUC tenga 11 dígitos, teléfono 9 dígitos, y correo sea válido. ──
     private boolean validarCampos() {
         String ruc = txtRuc.getText().trim();
         String telefono = txtTelefono.getText().trim();
@@ -260,6 +265,7 @@ public class GestionProveedores extends javax.swing.JFrame {
         return true;
     }
 
+    // ── DESCRIPCIÓN: Inserta un nuevo proveedor en la BD con validación y registro de auditoría. ──
     private void guardarProveedor() {
         if (!validarCampos()) return;
 
@@ -291,6 +297,7 @@ public class GestionProveedores extends javax.swing.JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Actualiza los datos de un proveedor existente con validación y auditoría. ──
     private void actualizarProveedor() {
         if (txtId.getText().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Selecciona un proveedor y haz clic en Editar.");
@@ -322,6 +329,7 @@ public class GestionProveedores extends javax.swing.JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Elimina un proveedor tras confirmación, verificando que no tenga compras asociadas. ──
     private void eliminarProveedor() {
         int fila = tabla.getSelectedRow();
         if (fila == -1) {
@@ -358,6 +366,7 @@ public class GestionProveedores extends javax.swing.JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Reinicia todos los campos del formulario. ──
     private void limpiarCampos() {
         txtId.setText("");
         txtNombre.setText("");
@@ -370,6 +379,7 @@ public class GestionProveedores extends javax.swing.JFrame {
 
     private static GestionProveedores instancia;
 
+    // ── DESCRIPCIÓN: Patrón singleton. ──
     public static void abrir() {
         if (instancia == null || !instancia.isDisplayable()) {
             instancia = new GestionProveedores();

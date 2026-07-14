@@ -10,6 +10,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+// ── DESCRIPCIÓN: Ventana para gestionar los datos de la empresa (nombre, dirección, RUC, teléfono, email, logo). ──
 public class DatosEmpresa extends JFrame {
 
     private static DatosEmpresa instancia;
@@ -18,6 +19,7 @@ public class DatosEmpresa extends JFrame {
     private JButton btnGuardar, btnSubirLogo;
     private byte[] logoBytes;
 
+    // ── DESCRIPCIÓN: Patrón singleton. ──
     public static void abrir() {
         if (instancia == null || !instancia.isVisible()) {
             instancia = new DatosEmpresa();
@@ -26,6 +28,7 @@ public class DatosEmpresa extends JFrame {
         instancia.toFront();
     }
 
+    // ── DESCRIPCIÓN: Inicializa la ventana y carga datos desde BD. ──
     private DatosEmpresa() {
         setTitle("Datos de la Empresa");
         setSize(600, 500);
@@ -35,6 +38,7 @@ public class DatosEmpresa extends JFrame {
         cargarDatos();
     }
 
+    // ── DESCRIPCIÓN: Construye el formulario con logo, campos de datos, y botón guardar. ──
     private void initUI() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(FONDO);
@@ -113,6 +117,7 @@ public class DatosEmpresa extends JFrame {
         add(panel);
     }
 
+    // ── DESCRIPCIÓN: Abre selector de imagen para el logo de la empresa. ──
     private void subirLogo() {
         JFileChooser fc = new JFileChooser();
         fc.setFileFilter(new FileNameExtensionFilter("Imágenes (png, jpg, jpeg)", "png", "jpg", "jpeg"));
@@ -136,6 +141,7 @@ public class DatosEmpresa extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Carga los datos de empresa desde BD (registro con id=1) y muestra en el formulario. ──
     private void cargarDatos() {
         try (Connection con = ConexionBD.conectar();
              PreparedStatement ps = con.prepareStatement(
@@ -166,6 +172,7 @@ public class DatosEmpresa extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Valida y guarda los datos de empresa en BD usando INSERT...ON DUPLICATE KEY UPDATE. ──
     private void guardar() {
         String nombre = txtNombre.getText().trim();
         String direccion = txtDireccion.getText().trim();

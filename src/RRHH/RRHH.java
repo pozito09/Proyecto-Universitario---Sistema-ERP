@@ -14,6 +14,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import Clases.Auditoria;
 
+// ── DESCRIPCIÓN: Módulo de Recursos Humanos. Gestiona usuarios/empleados: crear, editar, eliminar con KPIs por rol. ──
 public class RRHH extends JFrame {
 
     private DefaultTableModel modelo;
@@ -25,6 +26,7 @@ public class RRHH extends JFrame {
     private JLabel lblCajeros;
     private JLabel lblCocineros;
 
+    // ── DESCRIPCIÓN: Configura header, tarjetas KPI (total, admins, empleados, cajeros, cocineros), tabla de usuarios, y botones de acción. ──
     public RRHH() {
 
         setTitle("CAFÉ COMETA - RECURSOS HUMANOS");
@@ -159,6 +161,7 @@ public class RRHH extends JFrame {
         cargarUsuarios();
     }
 
+    // ── DESCRIPCIÓN: Abre diálogo para crear usuario con validación de campos, contraseña hasheada, y registro de auditoría. ──
     private void dialogoNuevoUsuario() {
         JDialog dlg = new JDialog(this, "Nuevo Usuario", true);
         dlg.getContentPane().setBackground(FONDO);
@@ -304,6 +307,7 @@ public class RRHH extends JFrame {
         dlg.setVisible(true);
     }
 
+    // ── DESCRIPCIÓN: Abre diálogo para editar usuario existente; si se deja contraseña vacía no la cambia. ──
     private void dialogoEditarUsuario() {
         int fila = tabla.getSelectedRow();
         if (fila < 0) {
@@ -459,6 +463,7 @@ public class RRHH extends JFrame {
         dlg.setVisible(true);
     }
 
+    // ── DESCRIPCIÓN: Elimina un usuario tras confirmación, registrando en auditoría. ──
     private void eliminarUsuario() {
         int fila = tabla.getSelectedRow();
         if (fila < 0) {
@@ -485,6 +490,7 @@ public class RRHH extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Crea un JLabel estilizado para formularios. ──
     private JLabel crearLabelForm(String texto) {
         JLabel lbl = new JLabel(texto);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -492,6 +498,7 @@ public class RRHH extends JFrame {
         return lbl;
     }
 
+    // ── DESCRIPCIÓN: Crea tarjeta KPI con título y valor. ──
     private JPanel crearTarjeta(
             String titulo,
             JLabel lblValor,
@@ -541,6 +548,7 @@ public class RRHH extends JFrame {
         return panel;
     }
 
+    // ── DESCRIPCIÓN: Carga todos los usuarios de la BD, actualiza contadores por rol. ──
     private void cargarUsuarios() {
 
         try (Connection cn = ConexionBD.conectar();
@@ -618,6 +626,7 @@ public class RRHH extends JFrame {
 
     private static RRHH instancia;
 
+    // ── DESCRIPCIÓN: Patrón singleton. ──
     public static void abrir() {
         if (instancia == null || !instancia.isDisplayable()) {
             instancia = new RRHH();

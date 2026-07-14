@@ -4,8 +4,10 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+// ── DESCRIPCIÓN: Utilidad para hashear y verificar contraseñas usando SHA-256 ──
 public class PasswordUtil {
 
+    // ── DESCRIPCIÓN: Convierte una contraseña en texto plano a su hash SHA-256 (en hexadecimal) ──
     public static String hash(String password) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -20,6 +22,7 @@ public class PasswordUtil {
         }
     }
 
+    // ── DESCRIPCIÓN: Compara una contraseña con un hash almacenado; soporta tanto hashes SHA-256 como texto plano para compatibilidad ──
     public static boolean verificar(String password, String hashAlmacenado) {
         if (hashAlmacenado == null || hashAlmacenado.isEmpty()) return false;
         if (hashAlmacenado.length() == 64 && hashAlmacenado.matches("[0-9a-f]+")) {

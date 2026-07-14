@@ -16,6 +16,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import Clases.Auditoria;
 
+// ── DESCRIPCIÓN: Módulo de gestión de ventas. Muestra pedidos pagados/anulados con filtros por período, tarjetas KPI, y permite anular ventas. ──
 public class Ventas extends JFrame {
 
     private JTable tabla;
@@ -25,6 +26,7 @@ public class Ventas extends JFrame {
     private JSpinner spAnio;
     private JLabel lblValorDia, lblValorPeriodo, lblTituloPeriodo;
 
+    // ── DESCRIPCIÓN: Configura header, tarjetas KPI (ventas del día y total período), filtros (Hoy/Este Mes/Mes específico/Todas), tabla de ventas, y botones anular/actualizar. ──
     public Ventas() {
 
         setTitle("CAFÉ COMETA - VENTAS");
@@ -156,6 +158,7 @@ public class Ventas extends JFrame {
         cargarVentas();
     }
 
+    // ── DESCRIPCIÓN: Crea tarjetas KPI con título y valor numérico. ──
     private JPanel crearTarjeta(String titulo, JLabel valor, Color color) {
         JPanel panel = new JPanel();
         panel.setBackground(color);
@@ -179,6 +182,7 @@ public class Ventas extends JFrame {
         return panel;
     }
 
+    // ── DESCRIPCIÓN: Crea tarjetas KPI con título y valor numérico (sobrecarga con JLabel para título dinámico). ──
     private JPanel crearTarjeta(JLabel titulo, JLabel valor, Color color) {
         JPanel panel = new JPanel();
         panel.setBackground(color);
@@ -201,6 +205,7 @@ public class Ventas extends JFrame {
         return panel;
     }
 
+    // ── DESCRIPCIÓN: Anula una venta: revierte stock de productos, revierte insumos vía recetas, marca pedido como Anulado, y registra en auditoría. ──
     private void anularVenta() {
         int fila = tabla.getSelectedRow();
         if (fila < 0) {
@@ -287,6 +292,7 @@ public class Ventas extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Carga las ventas según el filtro seleccionado, actualiza las tarjetas KPI con totales. ──
     private void cargarVentas() {
 
         modelo.setRowCount(0);
@@ -370,6 +376,7 @@ public class Ventas extends JFrame {
 
     private static Ventas instancia;
 
+    // ── DESCRIPCIÓN: Patrón singleton: abre la ventana o trae al frente si ya existe. ──
     public static void abrir() {
         if (instancia == null || !instancia.isDisplayable()) {
             instancia = new Ventas();

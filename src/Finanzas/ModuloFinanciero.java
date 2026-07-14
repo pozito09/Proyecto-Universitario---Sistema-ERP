@@ -12,12 +12,14 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
+// ── DESCRIPCIÓN: Módulo financiero. Muestra ingresos, gastos y margen bruto con filtros de período. Permite registrar gastos operativos. ──
 public class ModuloFinanciero extends JFrame {
 
     private JLabel lblIngresos, lblGastos, lblMargenBruto;
     private DefaultTableModel modelo;
     private JSpinner spDesde, spHasta;
 
+    // ── DESCRIPCIÓN: Configura header, filtros de fecha, tarjetas KPI (ingresos, gastos, margen), tabla de movimientos, y botones. ──
     public ModuloFinanciero() {
         setTitle("CAFÉ COMETA - FINANZAS");
         setSize(1200, 700);
@@ -120,6 +122,7 @@ public class ModuloFinanciero extends JFrame {
         cargarDatos();
     }
 
+    // ── DESCRIPCIÓN: Crea tarjeta KPI con título y valor. ──
     private JPanel crearTarjeta(String titulo, JLabel lblValor, Color color) {
         JPanel panel = new JPanel();
         panel.setBackground(color);
@@ -139,6 +142,7 @@ public class ModuloFinanciero extends JFrame {
         return panel;
     }
 
+    // ── DESCRIPCIÓN: Calcula ingresos (ventas pagadas), gastos (compras + gastos operativos), margen bruto, y carga movimientos en tabla. ──
     private void cargarDatos() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         String desde = sdf.format((java.util.Date) spDesde.getValue());
@@ -227,6 +231,7 @@ public class ModuloFinanciero extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Abre diálogo para registrar un gasto operativo con descripción, monto, categoría y fecha. ──
     private void nuevoGasto() {
         JTextField txtDescripcion = new JTextField();
         JTextField txtMonto = new JTextField();
@@ -278,6 +283,7 @@ public class ModuloFinanciero extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Elimina un gasto operativo seleccionado (solo permite eliminar gastos, no ventas ni compras). ──
     private void eliminarGasto(JTable tabla) {
         int fila = tabla.getSelectedRow();
         if (fila < 0) {
@@ -304,6 +310,7 @@ public class ModuloFinanciero extends JFrame {
 
     private static ModuloFinanciero instancia;
 
+    // ── DESCRIPCIÓN: Patrón singleton. ──
     public static void abrir() {
         if (instancia == null || !instancia.isDisplayable()) {
             instancia = new ModuloFinanciero();

@@ -2,8 +2,10 @@ package Clases;
 
 import java.awt.*;
 import javax.swing.*;
+// ── DESCRIPCIÓN: Utilidad para crear botones redondeados con efecto de cambio de color al pasar el mouse ──
 public class Botones {
 
+    // ── DESCRIPCIÓN: Crea un botón redondeado con color de fondo y color de hover personalizado ──
     public static JButton crear(String texto, Color fondo, Color hover) {
         JButton btn = new JButton(texto) {
             @Override
@@ -26,6 +28,7 @@ public class Botones {
         return btn;
     }
 
+    // ── DESCRIPCIÓN: Crea un botón redondeado usando una versión más clara del color de fondo como hover por defecto ──
     public static JButton crear(String texto, Color fondo) {
         return crear(texto, fondo, fondo.brighter());
     }

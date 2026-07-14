@@ -12,11 +12,13 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import Clases.Auditoria;
 
+// ── DESCRIPCIÓN: Módulo de gestión de compras. Lista compras registradas, permite cambiar estado y eliminar (revertiendo stock). ──
 public class GestionCompras extends JFrame {
 
     private JTable tabla;
     private DefaultTableModel modelo;
 
+    // ── DESCRIPCIÓN: Configura header, tabla de compras, y botones (nueva, editar, eliminar, actualizar). ──
     public GestionCompras() {
 
         setTitle("CAFÉ COMETA - COMPRAS");
@@ -84,6 +86,7 @@ public class GestionCompras extends JFrame {
         cargarCompras();
     }
 
+    // ── DESCRIPCIÓN: Carga todas las compras de la BD con nombre del proveedor. ──
     private void cargarCompras() {
 
         modelo.setRowCount(0);
@@ -125,6 +128,7 @@ public class GestionCompras extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Permite cambiar el estado de una compra (Pendiente/Completado/Anulado). ──
     private void editarCompra() {
         int fila = tabla.getSelectedRow();
         if (fila < 0) {
@@ -154,6 +158,7 @@ public class GestionCompras extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Elimina una compra: revierte stock de insumos, elimina detalle y registro, con auditoría. ──
     private void eliminarCompra() {
         int fila = tabla.getSelectedRow();
         if (fila < 0) {
@@ -208,6 +213,7 @@ public class GestionCompras extends JFrame {
 
     private static GestionCompras instancia;
 
+    // ── DESCRIPCIÓN: Patrón singleton. ──
     public static void abrir() {
         if (instancia == null || !instancia.isDisplayable()) {
             instancia = new GestionCompras();

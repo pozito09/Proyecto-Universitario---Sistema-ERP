@@ -20,6 +20,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import Clases.Auditoria;
 
+// ── DESCRIPCIÓN: Módulo de gestión de productos. CRUD con KPIs (total productos, categorías, stock total). ──
 public class GestionProductos extends JFrame {
 
     private JTable tabla;
@@ -31,6 +32,7 @@ public class GestionProductos extends JFrame {
 
     private JButton btnEditar;
 
+    // ── DESCRIPCIÓN: Configura header, tarjetas KPI, tabla de productos, y botones (nuevo, editar, eliminar, actualizar). ──
     public GestionProductos() {
 
         setTitle("CAFÉ COMETA - PRODUCTOS");
@@ -165,6 +167,7 @@ public class GestionProductos extends JFrame {
         cargarProductos();
     }
 
+    // ── DESCRIPCIÓN: Abre diálogo para editar un producto existente: carga datos desde BD, permite cambiar nombre, descripción, precio, categoría e imagen. ──
     private void mostrarDialogoEditar() {
         int fila = tabla.getSelectedRow();
         if (fila < 0) {
@@ -410,6 +413,7 @@ public class GestionProductos extends JFrame {
         dlg.setVisible(true);
     }
 
+    // ── DESCRIPCIÓN: Crea label estilizado para formularios. ──
     private JLabel crearLabelForm(String texto) {
         JLabel lbl = new JLabel(texto);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -419,6 +423,7 @@ public class GestionProductos extends JFrame {
 
 
 
+    // ── DESCRIPCIÓN: Elimina un producto tras confirmación con registro de auditoría. ──
     private void eliminarProducto() {
         int fila = tabla.getSelectedRow();
         if (fila < 0) {
@@ -443,6 +448,7 @@ public class GestionProductos extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Crea tarjeta KPI con título y valor. ──
     private JPanel crearTarjeta(
             String titulo,
             JLabel valor,
@@ -491,6 +497,7 @@ public class GestionProductos extends JFrame {
         return panel;
     }
 
+    // ── DESCRIPCIÓN: Carga todos los productos de la BD, actualiza KPIs. ──
     private void cargarProductos() {
 
         modelo.setRowCount(0);
@@ -547,6 +554,7 @@ public class GestionProductos extends JFrame {
 
     private static GestionProductos instancia;
 
+    // ── DESCRIPCIÓN: Patrón singleton. ──
     public static void abrir() {
         if (instancia == null || !instancia.isDisplayable()) {
             instancia = new GestionProductos();

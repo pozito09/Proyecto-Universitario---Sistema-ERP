@@ -10,6 +10,7 @@ import Administrativo.PanelSelector;
 import Empleado.Menu;
 import Empleado.CocineroVista;
 import Empleado.Cajero;
+// ── DESCRIPCIÓN: Ventana de inicio de sesión. Valida credenciales contra la BD y redirige según el rol del usuario. ──
 public class Login extends javax.swing.JFrame {
 
     public Login() {
@@ -131,6 +132,7 @@ public class Login extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    // ── DESCRIPCIÓN: Busca el usuario en la BD, verifica la contraseña con PasswordUtil, guarda la sesión, y abre la ventana correspondiente según el rol (CAJERO, EMPLEADO, COCINERO, ADMINISTRATIVO/JEFE). ──
     private void inicioSesionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_inicioSesionActionPerformed
         String usuario = correo.getText().trim();
         String pass = new String(Password.getPassword());

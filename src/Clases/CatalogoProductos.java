@@ -2,8 +2,10 @@ package Clases;
 
 import java.util.ArrayList;
 
+// ── DESCRIPCIÓN: Carga y devuelve la lista de todos los productos almacenados en la base de datos ──
 public class CatalogoProductos {
 
+    // ── DESCRIPCIÓN: Consulta la tabla "productos" y retorna una lista de objetos Producto con un color asignado por categoría ──
     public static ArrayList<Producto> obtenerProductos() {
         ArrayList<Producto> lista = new ArrayList<>();
 

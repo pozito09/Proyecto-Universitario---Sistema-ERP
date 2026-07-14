@@ -8,6 +8,7 @@ import static Clases.Colores.*;
 import java.util.*;
 
 
+// ── DESCRIPCIÓN: Panel del mozo. Muestra el catálogo de productos por categoría (Cafés, Emparedados, Postres) con tarjetas para agregar al carrito. ──
 public class Menu extends javax.swing.JFrame {
 
     private ArrayList<Producto> productos = new ArrayList<>();
@@ -17,6 +18,7 @@ public class Menu extends javax.swing.JFrame {
     private int totalCarrito = 0;
     private javax.swing.JLabel badgeCarrito;
 
+    // ── DESCRIPCIÓN: Inicializa la vista, carga productos desde BD, configura pestañas, badge del carrito, y scroll. ──
     public Menu() {
         initComponents();
         setTitle("CAFÉ COMETA - PANEL DE MOZO");
@@ -302,6 +304,7 @@ public class Menu extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    // ── DESCRIPCIÓN: Abre ventana de búsqueda flotante que filtra productos en tiempo real y permite agregar al carrito. ──
     private void BusquedaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BusquedaActionPerformed
         // Panel de búsqueda flotante
         if (ventanaBusqueda != null && ventanaBusqueda.isVisible()) {
@@ -374,6 +377,7 @@ public class Menu extends javax.swing.JFrame {
         dialogo.add(scrollResultados, java.awt.BorderLayout.CENTER);
         dialogo.setVisible(true);
     }//GEN-LAST:event_BusquedaActionPerformed
+    // ── DESCRIPCIÓN: Posiciona el badge del contador de carrito sobre el botón de compra. ──
     private void reponerBadge() {
         java.awt.Point p = javax.swing.SwingUtilities.convertPoint(
                 Compra, Compra.getWidth() - 8, -6, getGlassPane());
@@ -381,6 +385,7 @@ public class Menu extends javax.swing.JFrame {
         getGlassPane().repaint();
     }
 
+    // ── DESCRIPCIÓN: Suma o resta cantidad al badge del carrito. ──
     public void actualizarBadgeCarrito(int cantidad) {
         totalCarrito += cantidad;
         if (totalCarrito < 0) totalCarrito = 0;
@@ -388,11 +393,13 @@ public class Menu extends javax.swing.JFrame {
         reponerBadge();
     }
 
+    // ── DESCRIPCIÓN: Reinicia el contador del carrito a 0. ──
     public void resetearCarrito() {
         totalCarrito = 0;
         badgeCarrito.setText("0");
         reponerBadge();
     }
+    // ── DESCRIPCIÓN: Cierra la ventana de pago si está abierta, cierra esta ventana, y vuelve al Login. ──
     private void CerrarSesionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CerrarSesionActionPerformed
         if (ventanaPago != null) {
             ventanaPago.dispose();
@@ -407,6 +414,7 @@ public class Menu extends javax.swing.JFrame {
 
     }//GEN-LAST:event_CerrarSesionActionPerformed
 
+    // ── DESCRIPCIÓN: Abre la ventana de pago/lista de compra. ──
     private void CompraActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CompraActionPerformed
         if (ventanaPago == null) {
             ventanaPago = new listaMenu(this);
@@ -415,11 +423,12 @@ public class Menu extends javax.swing.JFrame {
         ventanaPago.setLocationRelativeTo(null);
         ventanaPago.toFront();
     }//GEN-LAST:event_CompraActionPerformed
+    // ── DESCRIPCIÓN: Carga la lista de productos desde la base de datos. ──
     private void inicializarProductos() {
         productos = CatalogoProductos.obtenerProductos();
     }
 
-    // ── Cargar productos en los paneles del Designer ──────────────────
+    // ── DESCRIPCIÓN: Distribuye los productos en los paneles de cada categoría del Designer. ──
     private void cargarCatalogo() {
         // Configura el layout de cada panel del Designer
         Café.setLayout(new java.awt.GridLayout(0, 6, 15, 15));
@@ -447,7 +456,7 @@ public class Menu extends javax.swing.JFrame {
         }
     }
 
-    // ── Crea la tarjeta y la agrega al panel de su categoría ──
+    // ── DESCRIPCIÓN: Crea una tarjeta visual para un producto con imagen, nombre, descripción, precio, contador de cantidad y botón agregar. ──
     private javax.swing.JPanel crearTarjeta(Producto p) {
         boolean disponible = p.getStock() > 0;
         // ── TARJETA con sombra y bordes redondeados ──────────────────

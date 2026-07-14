@@ -12,6 +12,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import Clases.Auditoria;
 
+// ── DESCRIPCIÓN: Módulo de inventario de insumos. CRUD con KPIs (total insumos, stock bajo, disponibles). ──
 public class GestionInventario extends JFrame {
 
     private JTable tabla;
@@ -21,6 +22,7 @@ public class GestionInventario extends JFrame {
     private JLabel lblStockBajo;
     private JLabel lblDisponibles;
 
+    // ── DESCRIPCIÓN: Configura header, tarjetas KPI, tabla de insumos, y botones de acción. ──
     public GestionInventario() {
 
         setTitle("CAFÉ COMETA - INVENTARIO");
@@ -142,6 +144,7 @@ public class GestionInventario extends JFrame {
         cargarInventario();
     }
 
+    // ── DESCRIPCIÓN: Abre diálogo para crear insumo con nombre, unidad, stock inicial y stock mínimo. ──
     private void dialogoNuevoInsumo() {
         JTextField txtNombre = new JTextField(15);
         JTextField txtUnidad = new JTextField(8);
@@ -190,6 +193,7 @@ public class GestionInventario extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Abre diálogo para editar un insumo existente (nombre, unidad, stock mínimo). ──
     private void dialogoEditarInsumo() {
         int fila = tabla.getSelectedRow();
         if (fila < 0) {
@@ -239,6 +243,7 @@ public class GestionInventario extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Elimina un insumo y sus registros asociados (movimientos, recetas, detalle_compras) en una transacción. ──
     private void eliminarInsumo() {
         int fila = tabla.getSelectedRow();
         if (fila < 0) {
@@ -280,6 +285,7 @@ public class GestionInventario extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Crea tarjeta KPI con título y valor. ──
     private JPanel crearTarjeta(
             String titulo,
             JLabel lblValor,
@@ -329,6 +335,7 @@ public class GestionInventario extends JFrame {
         return panel;
     }
 
+    // ── DESCRIPCIÓN: Carga todos los insumos de la BD, clasifica como 'Stock Bajo' o 'Disponible', actualiza KPIs. ──
     private void cargarInventario() {
 
         modelo.setRowCount(0);
@@ -391,6 +398,7 @@ public class GestionInventario extends JFrame {
 
     private static GestionInventario instancia;
 
+    // ── DESCRIPCIÓN: Patrón singleton. ──
     public static void abrir() {
         if (instancia == null || !instancia.isDisplayable()) {
             instancia = new GestionInventario();

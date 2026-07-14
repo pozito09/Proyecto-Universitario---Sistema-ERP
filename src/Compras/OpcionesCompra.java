@@ -13,6 +13,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import Clases.Auditoria;
 
+// ── DESCRIPCIÓN: Ventana para registrar una nueva compra a un proveedor con múltiples insumos. ──
 public class OpcionesCompra extends JFrame {
 
     private JComboBox<String> cmbProveedor;
@@ -23,6 +24,7 @@ public class OpcionesCompra extends JFrame {
     private DefaultTableModel modelo;
     private final java.util.List<ItemTemp> items = new ArrayList<>();
 
+    // ── DESCRIPCIÓN: Clase auxiliar para almacenar temporalmente un ítem de compra. ──
     static class ItemTemp {
         String insumo;
         int idInsumo;
@@ -38,6 +40,7 @@ public class OpcionesCompra extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Inicializa la ventana, carga proveedores e insumos desde BD. ──
     public OpcionesCompra() {
         setTitle("Gestión de Compras - Cafe Cometa");
         setSize(900, 650);
@@ -48,6 +51,7 @@ public class OpcionesCompra extends JFrame {
         cargarInsumos();
     }
 
+    // ── DESCRIPCIÓN: Construye la interfaz: selectors de proveedor/insumo, campos cantidad/precio, tabla de ítems, botones. ──
     private void iniciarComponentes() {
         JPanel content = new JPanel(new BorderLayout());
         content.setBackground(FONDO);
@@ -127,6 +131,7 @@ public class OpcionesCompra extends JFrame {
         add(content);
     }
 
+    // ── DESCRIPCIÓN: Carga los nombres de proveedores en el ComboBox. ──
     private void cargarProveedores() {
         try (Connection con = ConexionBD.conectar();
              PreparedStatement ps = con.prepareStatement("SELECT nombre FROM proveedores");
@@ -140,6 +145,7 @@ public class OpcionesCompra extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Carga los nombres de insumos en el ComboBox. ──
     private void cargarInsumos() {
         try (Connection con = ConexionBD.conectar();
              PreparedStatement ps = con.prepareStatement("SELECT id, nombre FROM insumos");
@@ -153,6 +159,7 @@ public class OpcionesCompra extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Valida datos, obtiene ID del insumo, agrega ítem a la tabla y lista temporal. ──
     private void agregarItem() {
         if (cmbInsumo.getSelectedItem() == null) {
             JOptionPane.showMessageDialog(this, "Seleccione un insumo.");
@@ -191,6 +198,7 @@ public class OpcionesCompra extends JFrame {
         txtPrecio.setText("");
     }
 
+    // ── DESCRIPCIÓN: Elimina el ítem seleccionado de la tabla y lista temporal. ──
     private void quitarItem() {
         int fila = tabla.getSelectedRow();
         if (fila < 0) {
@@ -201,6 +209,7 @@ public class OpcionesCompra extends JFrame {
         modelo.removeRow(fila);
     }
 
+    // ── DESCRIPCIÓN: Valida proveedor e ítems, crea compra en BD, inserta detalle, incrementa stock de insumos, con transacción y auditoría. ──
     private void guardarCompra() {
         if (cmbProveedor.getSelectedItem() == null) {
             JOptionPane.showMessageDialog(this, "Seleccione un proveedor.");
@@ -265,6 +274,7 @@ public class OpcionesCompra extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Reinicia todos los campos, tabla y lista de ítems. ──
     private void limpiarTodo() {
         items.clear();
         modelo.setRowCount(0);
@@ -276,6 +286,7 @@ public class OpcionesCompra extends JFrame {
 
     private static OpcionesCompra instancia;
 
+    // ── DESCRIPCIÓN: Patrón singleton. ──
     public static void abrir() {
         if (instancia == null || !instancia.isDisplayable()) {
             instancia = new OpcionesCompra();

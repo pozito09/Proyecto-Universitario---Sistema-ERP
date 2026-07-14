@@ -18,11 +18,13 @@ import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
+// ── DESCRIPCIÓN: Panel de control administrativo. Muestra tarjetas para acceder a todas las áreas del sistema. ──
 public class PanelSelector extends JFrame {
 
     private static final Color CARD_BG = new Color(255, 255, 245);
     private static final Color CARD_BORDER = new Color(200, 140, 40);
 
+    // ── DESCRIPCIÓN: Construye el panel con header, grid de tarjetas de áreas (Dashboard, Ventas, Productos, Inventario, Compras, Proveedores, Caja, Empresa, RRHH, Finanzas, Reportes), y botón cerrar sesión. ──
     public PanelSelector() {
         setTitle("CAFE COMETA - SELECCIONAR ÁREA");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -105,6 +107,7 @@ public class PanelSelector extends JFrame {
     // ─────────────────────────────────────────────────────────────────
     //  TARJETA DE ÁREA
     // ─────────────────────────────────────────────────────────────────
+    // ── DESCRIPCIÓN: Tarjeta visual de área con nombre, descripción, y botón ABRIR. Click en la tarjeta también abre el módulo. ──
     private static class AreaCard extends JPanel {
 
         private final Color accent;
@@ -170,6 +173,7 @@ public class PanelSelector extends JFrame {
             });
         }
 
+        // ── DESCRIPCIÓN: Dibuja una barra de color acento en el lado izquierdo de la tarjeta. ──
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);

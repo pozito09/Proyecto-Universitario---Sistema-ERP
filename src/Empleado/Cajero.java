@@ -11,6 +11,7 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 
+// ── DESCRIPCIÓN: Panel del cajero. Permite buscar pedidos por ID, procesar pagos (efectivo/tarjeta/Yape), y generar comprobante PDF. ──
 public class Cajero extends JFrame {
 
     private static final Color BG_COLOR = new Color(245, 245, 220);
@@ -35,6 +36,7 @@ public class Cajero extends JFrame {
         initUI();
     }
 
+    // ── DESCRIPCIÓN: Construye la interfaz del cajero: campo de búsqueda, tabla de detalle, botón pagar, cerrar sesión. ──
     private void initUI() {
         setTitle("CAFÉ COMETA - PANEL DE CAJERO");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -165,6 +167,7 @@ public class Cajero extends JFrame {
         btnPagar.addActionListener(e -> procesarPago());
     }
 
+    // ── DESCRIPCIÓN: Busca un pedido por ID en la BD, carga su detalle y verifica que no esté pagado. ──
     private void buscarPedido() {
         String texto = txtId.getText().trim();
         if (texto.isEmpty()) return;
@@ -243,6 +246,7 @@ public class Cajero extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Solicita método de pago, monto recibido (si es efectivo), confirma el pago, actualiza BD y genera comprobante PDF. ──
     private void procesarPago() {
         if (!Caja.ControlCaja.hayCajaAbierta()) {
             JOptionPane.showMessageDialog(this,
@@ -355,6 +359,7 @@ public class Cajero extends JFrame {
         generarComprobantePDF(metodoPago, montoRecibido, vuelto, clienteGuardado, totalGuardado, productosGuardados, idGuardado);
     }
 
+    // ── DESCRIPCIÓN: Reinicia todos los campos y tabla del cajero. ──
     private void limpiar() {
         modeloTabla.setRowCount(0);
         lblId.setText("ID: —");
@@ -367,6 +372,7 @@ public class Cajero extends JFrame {
         totalActual = 0;
     }
 
+    // ── DESCRIPCIÓN: Agrega una línea separadora horizontal al documento PDF. ──
     private void agregarSeparadorPDF(com.itextpdf.text.Document doc) throws com.itextpdf.text.DocumentException {
         com.itextpdf.text.pdf.PdfPTable sep = new com.itextpdf.text.pdf.PdfPTable(1);
         sep.setWidthPercentage(100);
@@ -378,6 +384,7 @@ public class Cajero extends JFrame {
         doc.add(sep);
     }
 
+    // ── DESCRIPCIÓN: Genera un comprobante PDF completo con datos de empresa, detalle de productos, IGV, código QR y agradecimiento. ──
     private void generarComprobantePDF(String metodoPago, double montoRecibido, double vuelto, String cliente, double total, java.util.List<Object[]> productos, int idPedido) {
         String idStr = String.format("%09d", idPedido);
         String nombreArchivo = "comprobante_" + idStr + ".pdf";
@@ -570,7 +577,7 @@ public class Cajero extends JFrame {
             doc.add(new com.itextpdf.text.Paragraph(" "));
 
             try {
-                java.net.URL qrUrl = getClass().getResource("/Imagenes/QR.jpeg");
+                java.net.URL qrUrl = getClass().getResource("/Imagenes/qrbro.jpg");
                 if (qrUrl != null) {
                     com.itextpdf.text.Image img = com.itextpdf.text.Image.getInstance(qrUrl);
                     img.scaleToFit(80, 80);

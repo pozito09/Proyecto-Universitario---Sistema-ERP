@@ -9,6 +9,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
+// ── DESCRIPCIÓN: Módulo de reportes. Muestra compras y ventas por período, exporta a PDF y Excel (HTML). ──
 public class Reportes extends JFrame {
 
     private JSpinner spComprasDesde, spComprasHasta;
@@ -22,6 +23,7 @@ public class Reportes extends JFrame {
     private JTabbedPane tabs;
     private JLabel lblFechaActualizacion;
 
+    // ── DESCRIPCIÓN: Inicializa pestañas de Compras y Ventas con filtros de fecha. ──
     public Reportes() {
         setTitle("CAFÉ COMETA - REPORTES");
         setSize(1200, 750);
@@ -41,6 +43,7 @@ public class Reportes extends JFrame {
         add(crearFooter(), BorderLayout.SOUTH);
     }
 
+    // ── DESCRIPCIÓN: Crea header con título y botones de exportar PDF/Excel. ──
     private JPanel crearHeader() {
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(CAFE);
@@ -68,6 +71,7 @@ public class Reportes extends JFrame {
         return header;
     }
 
+    // ── DESCRIPCIÓN: Crea botón de exportación estilizado. ──
     private JButton crearBotonExport(String texto, Color color) {
         JButton btn = new JButton(texto);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
@@ -81,6 +85,7 @@ public class Reportes extends JFrame {
         return btn;
     }
 
+    // ── DESCRIPCIÓN: Crea el panel central con pestañas de Compras y Ventas. ──
     private JPanel crearCentro() {
         tabs = new JTabbedPane();
         tabs.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -93,6 +98,7 @@ public class Reportes extends JFrame {
         return centro;
     }
 
+    // ── DESCRIPCIÓN: Crea panel de filtros con spinners de fecha y botón filtrar. ──
     private JPanel crearFiltros(JSpinner spDesde, JSpinner spHasta, JButton btnFiltrar, String label) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 8));
         panel.setBackground(FONDO);
@@ -104,6 +110,7 @@ public class Reportes extends JFrame {
         return panel;
     }
 
+    // ── DESCRIPCIÓN: Crea un JSpinner configurado para seleccionar fechas. ──
     private JSpinner crearSpinnerFecha() {
         JSpinner sp = new JSpinner(new SpinnerDateModel());
         sp.setEditor(new JSpinner.DateEditor(sp, "dd/MM/yyyy"));
@@ -111,6 +118,7 @@ public class Reportes extends JFrame {
         return sp;
     }
 
+    // ── DESCRIPCIÓN: Crea botón de filtrar con acción personalizada. ──
     private JButton crearBotonFiltrar(Runnable action) {
         JButton btn = new JButton("Filtrar");
         btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -121,6 +129,7 @@ public class Reportes extends JFrame {
         return btn;
     }
 
+    // ── DESCRIPCIÓN: Crea un DefaultTableModel no editable. ──
     private DefaultTableModel crearModelo(Object[] columnas) {
         DefaultTableModel modelo = new DefaultTableModel() {
             @Override public boolean isCellEditable(int r, int c) { return false; }
@@ -129,6 +138,7 @@ public class Reportes extends JFrame {
         return modelo;
     }
 
+    // ── DESCRIPCIÓN: Crea una JTable estilizada con colores del tema. ──
     private JTable crearTabla(DefaultTableModel modelo) {
         JTable tabla = new JTable(modelo);
         tabla.getTableHeader().setBackground(CABECERA_TABLA);
@@ -138,6 +148,7 @@ public class Reportes extends JFrame {
         return tabla;
     }
 
+    // ── DESCRIPCIÓN: Crea la pestaña de compras con filtros de fecha y tabla. ──
     private JPanel crearTabCompras() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(FONDO);
@@ -161,6 +172,7 @@ public class Reportes extends JFrame {
         return panel;
     }
 
+    // ── DESCRIPCIÓN: Crea la pestaña de ventas con filtros de fecha y tabla. ──
     private JPanel crearTabVentas() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(FONDO);
@@ -184,6 +196,7 @@ public class Reportes extends JFrame {
         return panel;
     }
 
+    // ── DESCRIPCIÓN: Crea footer con botón actualizar y fecha de última actualización. ──
     private JPanel crearFooter() {
         JPanel footer = new JPanel(new BorderLayout());
         footer.setBackground(FONDO);
@@ -208,6 +221,7 @@ public class Reportes extends JFrame {
         return footer;
     }
 
+    // ── DESCRIPCIÓN: Carga compras de la BD filtradas por rango de fechas. ──
     private void cargarCompras() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         String desde = sdf.format((java.util.Date) spComprasDesde.getValue());
@@ -237,6 +251,7 @@ public class Reportes extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Carga ventas pagadas/anuladas de la BD. ──
     private void cargarVentas() {
         String sql = "SELECT id, nombre_cliente, fecha, total, estado_pago "
                 + "FROM pedidos WHERE estado_pago IN ('Pagado', 'Anulado') ORDER BY id DESC";
@@ -260,22 +275,27 @@ public class Reportes extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Verifica si la pestaña activa es Ventas. ──
     private boolean esTabVentas() {
         return tabs.getSelectedIndex() == 1;
     }
 
+    // ── DESCRIPCIÓN: Retorna el modelo de la pestaña activa (ventas o compras). ──
     private DefaultTableModel obtenerModeloActual() {
         return esTabVentas() ? modeloVentas : modeloCompras;
     }
 
+    // ── DESCRIPCIÓN: Retorna el prefijo del nombre de archivo según la pestaña. ──
     private String obtenerPrefijoArchivo() {
         return esTabVentas() ? "ventas" : "compras";
     }
 
+    // ── DESCRIPCIÓN: Retorna el título del reporte según la pestaña. ──
     private String obtenerTituloReporte() {
         return esTabVentas() ? "Reporte de Ventas" : "Reporte de Compras";
     }
 
+    // ── DESCRIPCIÓN: Retorna el período seleccionado formateado. ──
     private String obtenerPeriodo() {
         if (esTabVentas()) {
             return formatFecha(spVentasDesde) + " - " + formatFecha(spVentasHasta);
@@ -283,6 +303,7 @@ public class Reportes extends JFrame {
         return formatFecha(spComprasDesde) + " - " + formatFecha(spComprasHasta);
     }
 
+    // ── DESCRIPCIÓN: Genera y abre un PDF con el reporte de la pestaña activa. ──
     private void exportarPDF() {
         String ruta = System.getProperty("user.home") + java.io.File.separator
                 + "Desktop" + java.io.File.separator
@@ -328,6 +349,7 @@ public class Reportes extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Construye una tabla iTextPDF desde un modelo de tabla Swing. ──
     private com.itextpdf.text.pdf.PdfPTable tablaPDF(String[] columnas, float[] anchos,
             DefaultTableModel modelo, com.itextpdf.text.Font normal, com.itextpdf.text.Font bold) {
         com.itextpdf.text.pdf.PdfPTable tbl = new com.itextpdf.text.pdf.PdfPTable(columnas.length);
@@ -346,10 +368,12 @@ public class Reportes extends JFrame {
         return tbl;
     }
 
+    // ── DESCRIPCIÓN: Formatea la fecha de un JSpinner. ──
     private String formatFecha(JSpinner sp) {
         return new SimpleDateFormat("dd/MM/yyyy").format((java.util.Date) sp.getValue());
     }
 
+    // ── DESCRIPCIÓN: Genera y abre un archivo Excel (HTML) con el reporte. ──
     private void exportarExcel() {
         String ruta = System.getProperty("user.home") + java.io.File.separator
                 + "Desktop" + java.io.File.separator
@@ -390,6 +414,7 @@ public class Reportes extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Convierte un modelo de tabla a HTML con estilos. ──
     private String tablaHTML(DefaultTableModel modelo) {
         StringBuilder sb = new StringBuilder();
         sb.append("<table>");
@@ -410,12 +435,14 @@ public class Reportes extends JFrame {
         return sb.toString();
     }
 
+    // ── DESCRIPCIÓN: Escapa caracteres especiales HTML. ──
     private String esc(String s) {
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
     }
 
     private static Reportes instancia;
 
+    // ── DESCRIPCIÓN: Patrón singleton. ──
     public static void abrir() {
         if (instancia == null || !instancia.isDisplayable()) {
             instancia = new Reportes();

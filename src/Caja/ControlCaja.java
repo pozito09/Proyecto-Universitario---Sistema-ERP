@@ -9,6 +9,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 
+// ── DESCRIPCIÓN: Módulo de control de caja. Permite abrir/cerrar caja diaria, muestra KPIs (monto inicial, ventas, esperado, diferencia) e historial. ──
 public class ControlCaja extends JFrame {
 
     private JLabel lblInicial, lblVentas, lblEsperado, lblDiferencia;
@@ -17,6 +18,7 @@ public class ControlCaja extends JFrame {
     private JTable tabla;
     private DefaultTableModel modelo;
 
+    // ── DESCRIPCIÓN: Inicializa la ventana y carga datos. ──
     public ControlCaja() {
         setTitle("CAFÉ COMETA - CAJA");
         setSize(1000, 650);
@@ -29,6 +31,7 @@ public class ControlCaja extends JFrame {
         cargarDatos();
     }
 
+    // ── DESCRIPCIÓN: Construye la interfaz: header con botones abrir/cerrar, KPIs, tabla de historial, footer. ──
     private void initComponents() {
         add(crearHeader(), BorderLayout.NORTH);
 
@@ -41,6 +44,7 @@ public class ControlCaja extends JFrame {
         add(crearFooter(), BorderLayout.SOUTH);
     }
 
+    // ── DESCRIPCIÓN: Crea header con título y botones Abrir/Cerrar Caja. ──
     private JPanel crearHeader() {
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(CAFE);
@@ -67,6 +71,7 @@ public class ControlCaja extends JFrame {
         return header;
     }
 
+    // ── DESCRIPCIÓN: Crea panel de tarjetas KPI (monto inicial, ventas, esperado, diferencia). ──
     private JPanel crearKPIs() {
         JPanel panel = new JPanel(new GridLayout(1, 4, 15, 15));
         panel.setBorder(new EmptyBorder(15, 15, 5, 15));
@@ -80,6 +85,7 @@ public class ControlCaja extends JFrame {
         return panel;
     }
 
+    // ── DESCRIPCIÓN: Crea una tarjeta KPI individual. ──
     private JLabel crearTarjeta(JPanel contenedor, String titulo, Color color) {
         JPanel panel = new JPanel();
         panel.setBackground(color);
@@ -105,6 +111,7 @@ public class ControlCaja extends JFrame {
         return lblValor;
     }
 
+    // ── DESCRIPCIÓN: Crea la tabla de historial de aperturas de caja. ──
     private JScrollPane crearTabla() {
         modelo = new DefaultTableModel() {
             @Override public boolean isCellEditable(int r, int c) { return false; }
@@ -119,6 +126,7 @@ public class ControlCaja extends JFrame {
         return new JScrollPane(tabla);
     }
 
+    // ── DESCRIPCIÓN: Crea footer con botón actualizar y fecha de última actualización. ──
     private JPanel crearFooter() {
         JPanel footer = new JPanel(new BorderLayout());
         footer.setBackground(FONDO);
@@ -143,6 +151,7 @@ public class ControlCaja extends JFrame {
     // ============================================
     // DATOS
     // ============================================
+    // ── DESCRIPCIÓN: Carga KPIs, historial, y actualiza estado de botones. ──
     private void cargarDatos() {
         cargarKPIs();
         cargarHistorial();
@@ -150,6 +159,7 @@ public class ControlCaja extends JFrame {
         lblFechaActualizacion.setText("Última actualización: " + new java.util.Date());
     }
 
+    // ── DESCRIPCIÓN: Calcula monto inicial, ventas del día y monto esperado de la caja abierta. ──
     private void cargarKPIs() {
         try (Connection con = ConexionBD.conectar();
              Statement st = con.createStatement()) {
@@ -181,6 +191,7 @@ public class ControlCaja extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Obtiene la suma de ventas pagadas de la apertura de caja actual. ──
     private double getVentasDelDia(Connection con, int idApertura) {
         try (PreparedStatement ps = con.prepareStatement(
                 "SELECT COALESCE(SUM(total),0) total FROM pedidos WHERE id_apertura=? AND estado_pago = 'Pagado'")) {
@@ -192,6 +203,7 @@ public class ControlCaja extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Carga el historial de todas las aperturas de caja con sus montos y diferencias. ──
     private void cargarHistorial() {
         String sql = "SELECT id, fecha_apertura, fecha_cierre, monto_inicial, monto_final, "
                 + "estado FROM apertura_caja ORDER BY id DESC";
@@ -231,6 +243,7 @@ public class ControlCaja extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Obtiene las ventas de una apertura de caja específica en un rango de fechas. ──
     private double getVentasPorCaja(Connection con, int idApertura, Timestamp desde, Timestamp hasta) {
         if (desde == null) return 0;
         String sql;
@@ -250,6 +263,7 @@ public class ControlCaja extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Habilita/deshabilita botones según si hay caja abierta. ──
     private void actualizarBotones() {
         boolean hayAbierta = hayCajaAbierta();
         btnAbrir.setEnabled(!hayAbierta);
@@ -259,6 +273,7 @@ public class ControlCaja extends JFrame {
     // ============================================
     // ACCIONES
     // ============================================
+    // ── DESCRIPCIÓN: Solicita monto inicial, verifica que no haya caja abierta, crea registro en BD. ──
     private void abrirCaja() {
         String input = JOptionPane.showInputDialog(this,
                 "Ingrese el monto inicial en caja:", "Abrir Caja", JOptionPane.QUESTION_MESSAGE);
@@ -300,6 +315,7 @@ public class ControlCaja extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Solicita monto final, calcula diferencia (inicial+ventas vs real), cierra caja en BD. ──
     private void cerrarCaja() {
         if (!hayCajaAbierta()) {
             JOptionPane.showMessageDialog(this, "No hay una caja abierta.");
@@ -368,6 +384,7 @@ public class ControlCaja extends JFrame {
     // ============================================
     // UTILIDADES
     // ============================================
+    // ── DESCRIPCIÓN: Verifica si existe una caja con estado 'Abierta' (estático, usado por otros módulos). ──
     public static boolean hayCajaAbierta() {
         try (Connection con = ConexionBD.conectar();
              Statement st = con.createStatement();
@@ -379,6 +396,7 @@ public class ControlCaja extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Retorna el ID de la caja abierta actual (estático, usado por otros módulos). ──
     public static int getCajaActivaId() {
         try (Connection con = ConexionBD.conectar();
              Statement st = con.createStatement();
@@ -392,6 +410,7 @@ public class ControlCaja extends JFrame {
 
     private static ControlCaja instancia;
 
+    // ── DESCRIPCIÓN: Patrón singleton. ──
     public static void abrir() {
         if (instancia == null || !instancia.isDisplayable()) {
             instancia = new ControlCaja();

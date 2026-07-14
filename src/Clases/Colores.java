@@ -2,6 +2,7 @@ package Clases;
 
 import java.awt.Color;
 
+// ── DESCRIPCIÓN: Define la paleta de colores utilizada en toda la interfaz de la aplicación ──
 public class Colores {
     public static final Color CAFE      = new Color(102, 51, 0);
     public static final Color DORADO    = new Color(200, 140, 40);

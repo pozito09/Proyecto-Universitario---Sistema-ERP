@@ -16,6 +16,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DefaultPieDataset;
 
+// ── DESCRIPCIÓN: Dashboard gerencial. Muestra KPIs, últimas ventas, top productos, gráficos de barras y circular (usando JFreeChart), con auto-refresh cada 30 segundos. ──
 public class GerencialV2 extends JFrame {
 
     private JLabel lblVentas, lblIngresos, lblProductos, lblProveedores;
@@ -26,6 +27,7 @@ public class GerencialV2 extends JFrame {
     private JLabel lblFechaActualizacion;
     private JButton btnActualizar;
 
+    // ── DESCRIPCIÓN: Inicializa el dashboard, carga todos los datos, y arranca timer de auto-refresh. ──
     public GerencialV2() {
         setTitle("CAFÉ COMETA - DASHBOARD GERENCIAL");
         setSize(1500, 850);
@@ -49,11 +51,13 @@ public class GerencialV2 extends JFrame {
         });
     }
 
+    // ── DESCRIPCIÓN: Inicializa el panel principal del dashboard. ──
     private void initComponents() {
         setLayout(new BorderLayout());
         add(crearPanelDashboard(), BorderLayout.CENTER);
     }
 
+    // ── DESCRIPCIÓN: Construye todo el layout: header, KPIs, tabla ventas, tabla productos, gráficos, footer. ──
     private JPanel crearPanelDashboard() {
         JPanel panel = new JPanel(new BorderLayout());
 
@@ -143,6 +147,7 @@ public class GerencialV2 extends JFrame {
         return panel;
     }
 
+    // ── DESCRIPCIÓN: Crea tarjeta KPI. ──
     private JLabel crearTarjeta(JPanel contenedor, String titulo, Color color) {
         JPanel panel = new JPanel();
         panel.setBackground(color);
@@ -164,6 +169,7 @@ public class GerencialV2 extends JFrame {
         return lblValor;
     }
 
+    // ── DESCRIPCIÓN: Carga KPIs: total ventas pagadas, ingresos totales, total productos, total proveedores. ──
     private void cargarIndicadores() {
         try (Connection con = ConexionBD.conectar()) {
             try (Statement st = con.createStatement();
@@ -188,6 +194,7 @@ public class GerencialV2 extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Carga las 10 últimas ventas pagadas en la tabla. ──
     private void cargarUltimasVentas() {
         try (Connection con = ConexionBD.conectar()) {
             modeloVentas.setRowCount(0);
@@ -204,6 +211,7 @@ public class GerencialV2 extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Carga los 10 productos más vendidos. ──
     private void cargarTopProductos() {
         try (Connection con = ConexionBD.conectar()) {
             modeloProductos.setRowCount(0);
@@ -223,6 +231,7 @@ public class GerencialV2 extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Genera gráfico de barras con los productos más vendidos usando JFreeChart. ──
     private void cargarGraficoBarras() {
         try (Connection con = ConexionBD.conectar()) {
             panelGraficoBarras.removeAll();
@@ -247,6 +256,7 @@ public class GerencialV2 extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Genera gráfico circular de participación de ventas por producto usando JFreeChart. ──
     private void cargarGraficoCircular() {
         try (Connection con = ConexionBD.conectar()) {
             panelGraficoCircular.removeAll();
@@ -271,6 +281,7 @@ public class GerencialV2 extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Configura timer de 30 segundos para refrescar todos los datos del dashboard. ──
     private void iniciarActualizacionAutomatica() {
         timerAutoRefresh = new Timer(30000, e -> {
             cargarIndicadores();
@@ -284,6 +295,7 @@ public class GerencialV2 extends JFrame {
 
     private static GerencialV2 instancia;
 
+    // ── DESCRIPCIÓN: Patrón singleton. ──
     public static void abrir() {
         if (instancia == null || !instancia.isDisplayable()) {
             instancia = new GerencialV2();

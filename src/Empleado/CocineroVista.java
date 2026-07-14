@@ -8,6 +8,7 @@ import java.sql.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
+// ── DESCRIPCIÓN: Panel del cocinero. Muestra pedidos pendientes y permite cambiar su estado de cocina (Pendiente -> Preparando -> Listo). ──
 public class CocineroVista extends JFrame {
 
     private JTable tablaPedidos;
@@ -23,6 +24,7 @@ public class CocineroVista extends JFrame {
 
     private Timer timer;
 
+    // ── DESCRIPCIÓN: Inicializa la vista, carga pedidos, y configura un timer de 5 segundos para auto-refrescar. ──
     public CocineroVista() {
         initComponents();
         cargarPedidos();
@@ -40,6 +42,7 @@ public class CocineroVista extends JFrame {
         });
     }
 
+    // ── DESCRIPCIÓN: Construye la interfaz con tabla de pedidos, tabla de detalle, botones Preparando/Listo, y cerrar sesión. ──
     private void initComponents() {
 
         setTitle("CAFÉ COMETA - PANEL DE COCINERO");
@@ -192,6 +195,7 @@ public class CocineroVista extends JFrame {
         });
     }
 
+    // ── DESCRIPCIÓN: Carga todos los pedidos que no están Listo ni Anulados, manteniendo la selección actual. ──
     private void cargarPedidos() {
 
         // Guardar selección actual
@@ -249,6 +253,7 @@ public class CocineroVista extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Muestra los productos del pedido seleccionado en la tabla de detalle. ──
     private void cargarDetalle(int idPedido) {
 
         modeloDetalle.setRowCount(0);
@@ -279,6 +284,7 @@ public class CocineroVista extends JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Cambia el estado de cocina del pedido seleccionado validando la transición correcta (Pendiente->Preparando, Preparando->Listo). ──
     private void actualizarEstado(String estado) {
 
         int fila = tablaPedidos.getSelectedRow();

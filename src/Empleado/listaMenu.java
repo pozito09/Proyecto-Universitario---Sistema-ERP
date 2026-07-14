@@ -3,6 +3,7 @@ package Empleado;
 import javax.swing.table.DefaultTableModel;
 import Clases.Producto;
 
+// ── DESCRIPCIÓN: Ventana del carrito y generación de pedidos. Permite agregar productos, cargar pedidos existentes, y generar ticket/PDF. ──
 public class listaMenu extends javax.swing.JFrame {
 
     private Menu menuPadre;
@@ -11,6 +12,7 @@ public class listaMenu extends javax.swing.JFrame {
     /** Snapshot del pedido al cargarlo, para detectar cambios */
     private String snapshotOriginal = "";
 
+    // ── DESCRIPCIÓN: Inicializa la tabla del carrito, campo de ID para modificar pedidos existentes, y resetea el carrito del padre. ──
     public listaMenu(Menu padre) {
         initComponents();
         this.menuPadre = padre;
@@ -55,6 +57,7 @@ public class listaMenu extends javax.swing.JFrame {
         pack();
     }
 
+    // ── DESCRIPCIÓN: Carga un pedido existente por ID desde la BD, verificando que no esté pagado ni anulado. ──
     private void cargarPedidoExistente() {
         String texto = jTextField2.getText().trim();
         if (texto.isEmpty()) return;
@@ -118,6 +121,7 @@ public class listaMenu extends javax.swing.JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Agrega un producto al carrito; si ya existe incrementa la cantidad, si no agrega una nueva fila. ──
     public void agregarProducto(Producto p) {
         DefaultTableModel modelo = (DefaultTableModel) jTable1.getModel();
         // Buscar si ya existe
@@ -138,6 +142,7 @@ public class listaMenu extends javax.swing.JFrame {
         actualizarTotal(modelo);
     }
 
+    // ── DESCRIPCIÓN: Recalcula y muestra el total sumando los subtotales de la tabla. ──
     private void actualizarTotal(javax.swing.table.DefaultTableModel modelo) {
         double total = 0;
         for (int i = 0; i < modelo.getRowCount(); i++) {
@@ -146,6 +151,7 @@ public class listaMenu extends javax.swing.JFrame {
         jLabel6.setText(String.format("  S/ %.2f", total));
     }
 
+    // ── DESCRIPCIÓN: Reinicia la tabla, total, nombre del cliente y snapshot. ──
     private void limpiarFormulario() {
         modeloTabla.setRowCount(0);
         jLabel6.setText("S/ 0.00");
@@ -326,6 +332,7 @@ public class listaMenu extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    // ── DESCRIPCIÓN: Reduce en 1 la cantidad del producto seleccionado; si era 1, elimina la fila completa. ──
     private void EliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_EliminarActionPerformed
 
         int fila = jTable1.getSelectedRow();
@@ -351,6 +358,7 @@ public class listaMenu extends javax.swing.JFrame {
         jLabel6.setText(String.format("S/ %.2f", total));
     }//GEN-LAST:event_EliminarActionPerformed
 
+    // ── DESCRIPCIÓN: Compara el estado actual del carrito con el snapshot original para detectar si hubo modificaciones. ──
     private boolean huboCambios() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < modeloTabla.getRowCount(); i++) {
@@ -362,6 +370,7 @@ public class listaMenu extends javax.swing.JFrame {
         return !sb.toString().equals(snapshotOriginal);
     }
 
+    // ── DESCRIPCIÓN: Valida que haya productos y nombre de cliente, verifica caja abierta, crea o modifica el pedido en BD, genera PDF, y muestra confirmación. ──
     private void PagarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_PagarActionPerformed
         javax.swing.table.DefaultTableModel modelo
                 = (javax.swing.table.DefaultTableModel) jTable1.getModel();
@@ -504,6 +513,7 @@ public class listaMenu extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_PagarActionPerformed
 
+    // ── DESCRIPCIÓN: Inserta el pedido y su detalle en BD dentro de una transacción, deduce stock e insumos. ──
     private int crearPedido(String nombreCliente,
             javax.swing.table.DefaultTableModel modelo, double total) {
         int idPedido;
@@ -561,6 +571,7 @@ public class listaMenu extends javax.swing.JFrame {
         return idPedido;
     }
 
+    // ── DESCRIPCIÓN: Modifica un pedido existente: ajusta stock por diferencia, reemplaza detalle, actualiza cabecera. ──
     private int modificarPedido(int idPedido, String nombreCliente,
             javax.swing.table.DefaultTableModel modelo, double total) {
         try (java.sql.Connection con = Clases.ConexionBD.conectar()) {
@@ -679,6 +690,7 @@ public class listaMenu extends javax.swing.JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Verifica stock suficiente y descuenta productos del inventario. ──
     private boolean deducirStock(java.sql.Connection con, javax.swing.table.DefaultTableModel modelo)
             throws java.sql.SQLException {
         // Primero verificar stock suficiente de cada producto
@@ -735,6 +747,7 @@ public class listaMenu extends javax.swing.JFrame {
         return true;
     }
 
+    // ── DESCRIPCIÓN: Devuelve stock al inventario (para modificaciones/eliminaciones). ──
     private void revertirStock(java.sql.Connection con, javax.swing.table.DefaultTableModel modelo)
             throws java.sql.SQLException {
         String sql = "UPDATE productos SET stock = stock + ? WHERE nombre = ?";
@@ -748,6 +761,7 @@ public class listaMenu extends javax.swing.JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Descuenta insumos del inventario según las recetas de los productos vendidos. ──
     private void deducirInsumos(java.sql.Connection con, javax.swing.table.DefaultTableModel modelo) {
         try {
             String sql = "SELECT r.id_insumo, r.cantidad FROM recetas r JOIN productos p ON r.id_producto = p.id WHERE p.nombre = ?";
@@ -771,6 +785,7 @@ public class listaMenu extends javax.swing.JFrame {
         }
     }
 
+    // ── DESCRIPCIÓN: Devuelve insumos al inventario según las recetas. ──
     private void revertirInsumos(java.sql.Connection con, javax.swing.table.DefaultTableModel modelo) {
         try {
             String sql = "SELECT r.id_insumo, r.cantidad FROM recetas r JOIN productos p ON r.id_producto = p.id WHERE p.nombre = ?";
