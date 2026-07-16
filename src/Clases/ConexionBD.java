@@ -3,14 +3,13 @@ package Clases;
 import java.sql.Connection;
 import java.sql.DriverManager;
 
-// ── DESCRIPCIÓN: Gestiona la conexión a la base de datos MySQL "cafecometa" ──
+
 public class ConexionBD {
 
     private static final String URL = "jdbc:mysql://localhost:3306/cafecometa";
     private static final String USER = "root";
     private static final String PASSWORD = "root123";
 
-    // ── DESCRIPCIÓN: Abre y devuelve una conexión JDBC a la base de datos; muestra un diálogo de error si falla ──
     public static Connection conectar() {
         try {
             return DriverManager.getConnection(URL, USER, PASSWORD);
