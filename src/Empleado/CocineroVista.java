@@ -2,6 +2,7 @@ package Empleado;
 
 import static Clases.Colores.*;
 import Acceso.Login;
+import Clases.Auditoria;
 import Clases.ConexionBD;
 import java.awt.*;
 import java.sql.*;
@@ -19,6 +20,7 @@ public class CocineroVista extends JFrame {
 
     private JButton btnPreparando;
     private JButton btnListo;
+    private JButton btnAnular;
     private JButton btnCerrarSesion;
     private JLabel lblTitulo;
 
@@ -146,6 +148,17 @@ public class CocineroVista extends JFrame {
         panelIzquierdo.add(btnPreparando);
         panelIzquierdo.add(btnListo);
 
+        btnAnular = new JButton("ANULAR PEDIDO");
+        btnAnular.setBackground(ROJO);
+        btnAnular.setForeground(Color.WHITE);
+        btnAnular.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnAnular.setFocusPainted(false);
+        btnAnular.setBorderPainted(false);
+        btnAnular.setContentAreaFilled(false);
+        btnAnular.setOpaque(true);
+        btnAnular.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        panelIzquierdo.add(btnAnular);
+
         JPanel panelDerecho = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         panelDerecho.setBackground(FONDO);
         btnCerrarSesion = new JButton("CERRAR SESIÓN");
@@ -186,6 +199,8 @@ public class CocineroVista extends JFrame {
         btnPreparando.addActionListener(e -> actualizarEstado("Preparando"));
 
         btnListo.addActionListener(e -> actualizarEstado("Listo"));
+
+        btnAnular.addActionListener(e -> anularPedido());
 
         btnCerrarSesion.addActionListener(e -> {
             dispose();
@@ -354,6 +369,97 @@ public class CocineroVista extends JFrame {
         } catch (Exception ex) {
 
             JOptionPane.showMessageDialog(this, "Error al actualizar estado:\n" + ex.getMessage());
+        }
+    }
+
+    // ── DESCRIPCIÓN: Anula un pedido desde cocina: revierte stock, insumos, marca como Anulado y registra en auditoría. ──
+    private void anularPedido() {
+        int fila = tablaPedidos.getSelectedRow();
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Seleccione un pedido para anular.");
+            return;
+        }
+
+        int idPedido = Integer.parseInt(tablaPedidos.getValueAt(fila, 0).toString());
+        String cliente = tablaPedidos.getValueAt(fila, 1).toString();
+        String estadoPago = tablaPedidos.getValueAt(fila, 3).toString();
+
+        if ("Pagado".equals(estadoPago)) {
+            JOptionPane.showMessageDialog(this, "Este pedido ya fue pagado. Anúlalo desde la vista de Ventas.");
+            return;
+        }
+
+        int conf = JOptionPane.showConfirmDialog(this,
+                "¿Anular pedido #" + idPedido + " del cliente " + cliente + "?\nSe revertirá el stock de productos e insumos.",
+                "Confirmar Anulación",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+
+        if (conf != JOptionPane.YES_OPTION) return;
+
+        try (Connection con = ConexionBD.conectar()) {
+            con.setAutoCommit(false);
+
+            // Revertir stock de productos
+            try (PreparedStatement psRevertir = con.prepareStatement(
+                    "UPDATE productos SET stock = stock + ? WHERE nombre = ?")) {
+                try (PreparedStatement psDetalle = con.prepareStatement(
+                        "SELECT nombre_producto, cantidad FROM detalle_pedido WHERE id_pedido = ?")) {
+                    psDetalle.setInt(1, idPedido);
+                    try (ResultSet rs = psDetalle.executeQuery()) {
+                        while (rs.next()) {
+                            psRevertir.setInt(1, rs.getInt("cantidad"));
+                            psRevertir.setString(2, rs.getString("nombre_producto"));
+                            psRevertir.addBatch();
+                        }
+                    }
+                }
+                psRevertir.executeBatch();
+            }
+
+            // Revertir insumos vía recetas
+            try {
+                String sqlReceta = "SELECT r.id_insumo, r.cantidad FROM recetas r JOIN productos p ON r.id_producto = p.id WHERE p.nombre = ?";
+                String sqlRevertirInsumo = "UPDATE insumos SET stock = stock + ? WHERE id = ?";
+                try (PreparedStatement psReceta = con.prepareStatement(sqlReceta);
+                     PreparedStatement psRevertirInsumo = con.prepareStatement(sqlRevertirInsumo)) {
+                    try (PreparedStatement psDetalle = con.prepareStatement(
+                            "SELECT nombre_producto, cantidad FROM detalle_pedido WHERE id_pedido = ?")) {
+                        psDetalle.setInt(1, idPedido);
+                        try (ResultSet rsDet = psDetalle.executeQuery()) {
+                            while (rsDet.next()) {
+                                psReceta.setString(1, rsDet.getString("nombre_producto"));
+                                try (ResultSet rsReceta = psReceta.executeQuery()) {
+                                    while (rsReceta.next()) {
+                                        psRevertirInsumo.setDouble(1, rsReceta.getDouble("cantidad") * rsDet.getInt("cantidad"));
+                                        psRevertirInsumo.setInt(2, rsReceta.getInt("id_insumo"));
+                                        psRevertirInsumo.addBatch();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    psRevertirInsumo.executeBatch();
+                }
+            } catch (Exception e) {
+                // No hay recetas definidas
+            }
+
+            // Marcar como Anulado
+            try (PreparedStatement ps = con.prepareStatement(
+                    "UPDATE pedidos SET estado_pago='Anulado', estado_cocina=NULL WHERE id=?")) {
+                ps.setInt(1, idPedido);
+                ps.executeUpdate();
+            }
+
+            con.commit();
+            Auditoria.anular("pedidos", idPedido, "Pedido #" + idPedido + " anulado desde cocina por " + Clases.GuardarSesion.nombreCompleto());
+            cargarPedidos();
+            modeloDetalle.setRowCount(0);
+            JOptionPane.showMessageDialog(this, "Pedido #" + idPedido + " anulado correctamente.");
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al anular pedido:\n" + ex.getMessage());
         }
     }
 }

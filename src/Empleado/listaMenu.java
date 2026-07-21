@@ -15,6 +15,7 @@ public class listaMenu extends javax.swing.JFrame {
     // ── DESCRIPCIÓN: Inicializa la tabla del carrito, campo de ID para modificar pedidos existentes, y resetea el carrito del padre. ──
     public listaMenu(Menu padre) {
         initComponents();
+        setResizable(false);
         this.menuPadre = padre;
         modeloTabla = (javax.swing.table.DefaultTableModel) jTable1.getModel();
         jTable1.getTableHeader().setBackground(java.awt.Color.WHITE);
@@ -175,10 +176,11 @@ public class listaMenu extends javax.swing.JFrame {
         jLabel6 = new javax.swing.JLabel();
         Pagar = new javax.swing.JButton();
         Eliminar = new javax.swing.JButton();
+        EliminarTodo = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         jTextField1 = new javax.swing.JTextField();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jPanel1.setBackground(new java.awt.Color(102, 51, 0));
 
@@ -252,6 +254,18 @@ public class listaMenu extends javax.swing.JFrame {
             }
         });
 
+        EliminarTodo.setBackground(new java.awt.Color(204, 0, 0));
+        EliminarTodo.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        EliminarTodo.setForeground(new java.awt.Color(255, 255, 255));
+        EliminarTodo.setText("Eliminar Todo");
+        EliminarTodo.setBorderPainted(false);
+        EliminarTodo.setFocusPainted(false);
+        EliminarTodo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                EliminarTodoActionPerformed(evt);
+            }
+        });
+
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel1.setForeground(new java.awt.Color(255, 255, 255));
         jLabel1.setText("Nombre del Cliente:");
@@ -285,6 +299,8 @@ public class listaMenu extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(Eliminar)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(EliminarTodo)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jLabel5)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -312,7 +328,9 @@ public class listaMenu extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(Eliminar)))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(EliminarTodo)
+                            .addComponent(Eliminar))))
                 .addGap(42, 42, 42)
                 .addComponent(Pagar)
                 .addGap(37, 37, 37))
@@ -357,6 +375,24 @@ public class listaMenu extends javax.swing.JFrame {
         }
         jLabel6.setText(String.format("S/ %.2f", total));
     }//GEN-LAST:event_EliminarActionPerformed
+
+    private void EliminarTodoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_EliminarTodoActionPerformed
+        int fila = jTable1.getSelectedRow();
+        if (fila == -1) return;
+
+        int cantidadEliminada = (int) modeloTabla.getValueAt(fila, 1);
+        modeloTabla.removeRow(fila);
+
+        if (menuPadre != null) {
+            menuPadre.actualizarBadgeCarrito(-cantidadEliminada);
+        }
+
+        double total = 0;
+        for (int i = 0; i < modeloTabla.getRowCount(); i++) {
+            total += (double) modeloTabla.getValueAt(i, 3);
+        }
+        jLabel6.setText(String.format("S/ %.2f", total));
+    }//GEN-LAST:event_EliminarTodoActionPerformed
 
     // ── DESCRIPCIÓN: Compara el estado actual del carrito con el snapshot original para detectar si hubo modificaciones. ──
     private boolean huboCambios() {
@@ -811,6 +847,7 @@ public class listaMenu extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton Eliminar;
+    private javax.swing.JButton EliminarTodo;
     private javax.swing.JButton Pagar;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
